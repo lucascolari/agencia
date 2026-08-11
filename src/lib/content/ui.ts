@@ -12,12 +12,69 @@ const es: UiStrings = {
   footer: { rights: "Todos los derechos reservados" },
   pages: {
     home: {
-      intro: {
+      hero: {
         eyebrow: "Soluciones digitales — Buenos Aires",
         title: "Ideas que se sienten.",
-        lead: "Creamos marcas, campañas y experiencias digitales para empresas que quieren jugar en primera.",
+        lead: "Marcas, campañas y experiencias digitales para empresas que quieren jugar en primera.",
+        scrollHint: "Deslizá",
+        timeLabel: "BUE",
       },
-      cta: "Hablemos",
+      statement: {
+        eyebrow: "Manifiesto",
+        lines: [
+          "Somos un estudio de soluciones digitales.",
+          "Diseñamos marcas, campañas y experiencias",
+          "que la gente recuerda.",
+        ],
+      },
+      selectedWork: {
+        eyebrow: "Trabajos seleccionados",
+        title: "Lo que hicimos habla por nosotros.",
+        viewAll: "Ver todos los trabajos",
+      },
+      capabilities: {
+        eyebrow: "Capacidades",
+        title: "Todo lo que una marca necesita para moverse.",
+        items: [
+          {
+            title: "Branding",
+            description:
+              "Identidades que se reconocen a un metro y a un segundo: estrategia, naming, sistemas visuales.",
+          },
+          {
+            title: "Diseño digital",
+            description:
+              "Webs, e-commerce y productos digitales diseñados para convertir sin dejar de emocionar.",
+          },
+          {
+            title: "Campañas",
+            description:
+              "Ideas que cruzan medios: de la vía pública al feed, con un mismo pulso creativo.",
+          },
+          {
+            title: "Producción audiovisual",
+            description:
+              "Films, contenido y dirección de arte con calidad de cine y velocidad de internet.",
+          },
+        ],
+      },
+      clients: {
+        eyebrow: "Confiaron en nosotros",
+        names: [
+          "Núcleo",
+          "Faro Seguros",
+          "Mercado Andino",
+          "Volta Motos",
+          "Rioja Films",
+          "Delta Bank",
+          "Astra Foods",
+          "Pampa Energía Verde",
+        ],
+      },
+      closing: {
+        title: "Tu marca puede ser la próxima.",
+        action: "Hablemos",
+      },
     },
     about: {
       meta: {

@@ -3,6 +3,7 @@ import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
 import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
+import { Loader } from "@/components/ui/Loader";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${archivo.variable} ${inter.variable}`}>
       <body>
+        <Loader brand={siteConfig.name} />
         <SmoothScrollProvider>
           <Header />
           <main className="relative z-[var(--z-content)]">{children}</main>

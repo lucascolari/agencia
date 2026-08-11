@@ -4,7 +4,7 @@ import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
 
 const { lenisConstructor } = vi.hoisted(() => ({
   lenisConstructor: vi.fn(function () {
-    return { raf: vi.fn(), destroy: vi.fn() };
+    return { raf: vi.fn(), destroy: vi.fn(), on: vi.fn() };
   }),
 }));
 
