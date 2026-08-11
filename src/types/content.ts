@@ -85,14 +85,56 @@ export interface HomeContent {
   closing: { title: string; action: string };
 }
 
+export interface AboutContent {
+  meta: { title: string; description: string };
+  intro: PageIntroContent;
+  mission: { eyebrow: string; lines: string[] };
+  beliefs: { eyebrow: string; title: string; items: CapabilityItem[] };
+  culture: { eyebrow: string; title: string; body: string; stats: { value: string; label: string }[] };
+  closing: { title: string; action: string };
+}
+
+export interface ContactChannel {
+  label: string;
+  value: string;
+  href: string;
+}
+
+export interface ContactContent {
+  meta: { title: string; description: string };
+  intro: { eyebrow: string; title: string; lead: string };
+  form: {
+    steps: {
+      projectType: { legend: string; options: string[] };
+      description: { legend: string; placeholder: string };
+      details: {
+        legend: string;
+        name: string;
+        company: string;
+        email: string;
+      };
+      budget: { legend: string; options: string[] };
+    };
+    back: string;
+    next: string;
+    submit: string;
+    success: { title: string; body: string };
+    errors: { required: string; email: string };
+    progress: string;
+  };
+  channelsEyebrow: string;
+  channels: ContactChannel[];
+  timeLabel: string;
+}
+
 export interface UiStrings {
   nav: NavItem[];
   menu: { open: string; close: string };
   footer: { rights: string };
   pages: {
     home: HomeContent;
-    about: PageContent;
+    about: AboutContent;
     work: PageContent;
-    contact: PageContent;
+    contact: ContactContent;
   };
 }

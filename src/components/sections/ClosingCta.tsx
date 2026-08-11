@@ -1,12 +1,14 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/motion/Reveal";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import type { HomeContent } from "@/types/content";
 
-export function HomeClosing({
+/** Cierre editorial con CTA. Compartido por Home y About. */
+export function ClosingCta({
   content,
+  href = "/contact",
 }: {
-  content: HomeContent["closing"];
+  content: { title: string; action: string };
+  href?: string;
 }) {
   return (
     <section className="py-[calc(var(--section-gap)*1.2)]">
@@ -16,7 +18,7 @@ export function HomeClosing({
             {content.title}
           </h2>
           <div className="mt-12">
-            <ButtonLink href="/contact">{content.action}</ButtonLink>
+            <ButtonLink href={href}>{content.action}</ButtonLink>
           </div>
         </Reveal>
       </Container>
