@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils";
  * whileInView): revela de forma fiable el contenido ya visible al montar y
  * nunca lo deja atrapado invisible. Con reduced-motion no anima.
  *
+ * `as` permite renderizar como <li> cuando el Reveal es hijo directo de una
+ * lista, para no romper la semántica ul > li.
+ *
  * Los reveals simples viven en Framer Motion; GSAP/ScrollTrigger queda para las
  * escenas cinematográficas con pin/scrub (spec §52).
  */
@@ -16,20 +19,24 @@ export function Reveal({
   className,
   delay = 0,
   y = 36,
+  as = "div",
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
   y?: number;
+  as?: "div" | "li";
 }) {
   const reduced = useReducedMotion();
+  const MotionTag = as === "li" ? motion.li : motion.div;
+  const Static = as === "li" ? "li" : "div";
 
   if (reduced) {
-    return <div className={cn(className)}>{children}</div>;
+    return <Static className={cn(className)}>{children}</Static>;
   }
 
   return (
-    <motion.div
+    <MotionTag
       className={cn(className)}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -37,6 +44,6 @@ export function Reveal({
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay }}
     >
       {children}
-    </motion.div>
+    </MotionTag>
   );
 }

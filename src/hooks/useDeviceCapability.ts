@@ -56,6 +56,9 @@ export function useDeviceCapability(): DeviceCapability {
     ).matches;
     const webgl = detectWebGL();
     const lowEnd = detectLowEnd();
+    // Detección solo-cliente (WebGL/matchMedia): no puede correr en SSR, se
+    // resuelve una vez al montar. Excepción válida a set-state-in-effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCap({
       ready: true,
       webgl,

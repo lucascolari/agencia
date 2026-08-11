@@ -19,6 +19,8 @@ export function CustomCursor() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (!finePointer || reduced) return;
+    // Detección solo-cliente del tipo de puntero: no corre en SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(true);
 
     // Arranca fuera de pantalla: no mostramos el punto hasta el primer movimiento.

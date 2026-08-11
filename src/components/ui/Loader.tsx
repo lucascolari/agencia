@@ -1,31 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+
+type Phase = "checking" | "showing" | "done";
 
 /**
  * Loader de marca. Fase 2: versión 2D tipográfica que espera solo al primer
- * paint (no a toda la web). El elemento 3D del loader llega en fase 5.
+ * paint (no a toda la web). Se muestra una sola vez por sesión.
+ *
+ * Máquina de estados con `phase` (sin refs leídos en render): "checking" no
+ * pinta nada hasta saber, en cliente, si corresponde mostrarlo.
  */
 export function Loader({ brand }: { brand: string }) {
-  const [done, setDone] = useState(false);
-  const shown = useRef(false);
+  const [phase, setPhase] = useState<Phase>("checking");
 
   useEffect(() => {
-    // Solo en la primera carga de la sesión.
-    if (typeof window !== "undefined") {
-      if (sessionStorage.getItem("loader-seen")) {
-        setDone(true);
-        return;
-      }
-      shown.current = true;
+    // Decisión solo-cliente (sessionStorage) de mostrar el loader una vez.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (sessionStorage.getItem("loader-seen")) {
+      setPhase("done");
+      return;
     }
+    setPhase("showing");
+    /* eslint-enable react-hooks/set-state-in-effect */
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const timeout = window.setTimeout(
       () => {
-        setDone(true);
+        setPhase("done");
         sessionStorage.setItem("loader-seen", "1");
       },
       reduced ? 300 : 1500,
@@ -35,7 +39,7 @@ export function Loader({ brand }: { brand: string }) {
 
   return (
     <AnimatePresence>
-      {!done && shown.current && (
+      {phase === "showing" && (
         <motion.div
           aria-hidden
           className="fixed inset-0 z-[var(--z-loader)] flex items-center justify-center bg-background"

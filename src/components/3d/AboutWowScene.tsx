@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { MeasuredCanvas } from "./MeasuredCanvas";
@@ -13,16 +13,23 @@ import { MeasuredCanvas } from "./MeasuredCanvas";
 function Field({ progressRef }: { progressRef: React.RefObject<number> }) {
   const group = useRef<THREE.Group>(null);
 
-  const bars = Array.from({ length: 40 }, (_, i) => {
-    const angle = (i / 40) * Math.PI * 2;
-    const radius = 3 + (i % 5) * 0.6;
-    return {
-      x: Math.cos(angle) * radius,
-      y: (Math.random() - 0.5) * 6,
-      z: Math.sin(angle) * radius,
-      h: 0.6 + Math.random() * 2.4,
-    };
-  });
+  // Geometría estable: se calcula una vez, no en cada render (pureza).
+  // Altura pseudoaleatoria pero determinista a partir del índice.
+  const bars = useMemo(
+    () =>
+      Array.from({ length: 40 }, (_, i) => {
+        const angle = (i / 40) * Math.PI * 2;
+        const radius = 3 + (i % 5) * 0.6;
+        const seed = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+        return {
+          x: Math.cos(angle) * radius,
+          y: (((i * 7) % 12) / 12 - 0.5) * 6,
+          z: Math.sin(angle) * radius,
+          h: 0.6 + Math.abs(seed) * 2.4,
+        };
+      }),
+    [],
+  );
 
   useFrame((state) => {
     if (!group.current) return;

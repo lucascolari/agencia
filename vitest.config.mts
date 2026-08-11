@@ -8,6 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
+    // Solo tests unitarios/componente en src. Los E2E (e2e/*.spec.ts) los corre
+    // Playwright, no Vitest.
+    include: ["src/**/*.test.{ts,tsx}"],
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

@@ -121,6 +121,7 @@ export function ContactForm({ copy }: { copy: FormCopy }) {
       <div
         className="mt-4 h-px w-full bg-border"
         role="progressbar"
+        aria-label={`${copy.progress} ${step + 1} de ${STEP_COUNT}`}
         aria-valuenow={step + 1}
         aria-valuemin={1}
         aria-valuemax={STEP_COUNT}

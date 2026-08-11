@@ -17,10 +17,12 @@ export function HomeClients({
         </div>
         <ul className="mt-12 grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
           {content.names.map((name) => (
-            <Reveal key={name}>
-              <li className="font-display text-xl text-secondary md:text-2xl">
-                {name}
-              </li>
+            <Reveal
+              key={name}
+              as="li"
+              className="font-display text-xl text-secondary md:text-2xl"
+            >
+              {name}
             </Reveal>
           ))}
         </ul>

@@ -8,6 +8,7 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { ConsentBanner } from "@/features/consent/ConsentBanner";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -70,6 +71,7 @@ export default function RootLayout({
           </main>
           <Footer />
         </SmoothScrollProvider>
+        <ConsentBanner />
       </body>
     </html>
   );
