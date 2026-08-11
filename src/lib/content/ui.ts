@@ -87,6 +87,10 @@ const es: UiStrings = {
         title: "Una obsesión: el detalle.",
         lead: "Pensamos cada proyecto como una pieza única. Estrategia, diseño y tecnología al servicio de la marca.",
       },
+      wow: {
+        eyebrow: "Nuestra forma de ver",
+        headline: "Atravesamos el ruido.",
+      },
       mission: {
         eyebrow: "Por qué existimos",
         lines: [

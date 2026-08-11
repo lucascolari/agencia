@@ -88,6 +88,7 @@ export interface HomeContent {
 export interface AboutContent {
   meta: { title: string; description: string };
   intro: PageIntroContent;
+  wow: { eyebrow: string; headline: string };
   mission: { eyebrow: string; lines: string[] };
   beliefs: { eyebrow: string; title: string; items: CapabilityItem[] };
   culture: { eyebrow: string; title: string; body: string; stats: { value: string; label: string }[] };

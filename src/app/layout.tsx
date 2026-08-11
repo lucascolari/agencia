@@ -4,6 +4,7 @@ import "./globals.css";
 import { siteConfig } from "@/config/site";
 import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
 import { Loader } from "@/components/ui/Loader";
+import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="es" className={`${archivo.variable} ${inter.variable}`}>
       <body>
         <Loader brand={siteConfig.name} />
+        <CustomCursor />
         <SmoothScrollProvider>
           <Header />
           <main className="relative z-[var(--z-content)]">{children}</main>

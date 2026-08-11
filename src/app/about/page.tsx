@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { AboutMission } from "@/components/sections/AboutMission";
 import { AboutBeliefs } from "@/components/sections/AboutBeliefs";
 import { AboutCulture } from "@/components/sections/AboutCulture";
+import { AboutWow } from "@/components/sections/AboutWow";
 import { ClosingCta } from "@/components/sections/ClosingCta";
 
 const page = getUiStrings(siteConfig.locale).pages.about;
@@ -33,6 +34,7 @@ export default function AboutPage() {
 
       <AboutMission content={page.mission} />
       <AboutBeliefs content={page.beliefs} />
+      <AboutWow eyebrow={page.wow.eyebrow} headline={page.wow.headline} />
       <AboutCulture content={page.culture} />
       <ClosingCta content={page.closing} />
     </>
