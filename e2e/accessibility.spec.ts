@@ -9,10 +9,23 @@ const pages = [
   { path: "/contact", name: "contact" },
 ];
 
+// El loader es un overlay decorativo (aria-hidden) de primera visita: lo marcamos
+// como visto para escanear el contenido asentado, sin su fade transitorio.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("loader-seen", "1");
+  });
+});
+
 test.describe("Accesibilidad (axe)", () => {
   for (const { path, name } of pages) {
     test(`${name} sin violaciones serias ni críticas`, async ({ page }) => {
-      await page.goto(path);
+      await page.goto(path, { waitUntil: "networkidle" });
+      // Con la fuente y el layout ya asentados, medimos colores reales.
+      await page.getByRole("heading", { level: 1 }).waitFor();
+      // Margen para que terminen la detección de capacidades y cualquier
+      // aparición diferida (banner de consentimiento) antes de medir.
+      await page.waitForTimeout(500);
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa"])
         .analyze();

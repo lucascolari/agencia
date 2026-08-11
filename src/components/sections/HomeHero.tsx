@@ -19,11 +19,13 @@ export function HomeHero({
   const reduced = useReducedMotion();
 
   const fade: Variants = {
-    hidden: { opacity: 0, y: reduced ? 0 : 16 },
+    hidden: { opacity: reduced ? 1 : 0, y: reduced ? 0 : 16 },
     show: (i: number = 0) => ({
       opacity: 1,
       y: 0,
-      transition: { duration: 0.8, ease: EASE, delay: 0.2 + i * 0.1 },
+      transition: reduced
+        ? { duration: 0 }
+        : { duration: 0.8, ease: EASE, delay: 0.2 + i * 0.1 },
     }),
   };
 

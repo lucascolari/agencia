@@ -45,10 +45,10 @@ export function ConsentBanner() {
           role="dialog"
           aria-label={consentCopy.title}
           aria-modal={false}
-          initial={{ opacity: 0, y: reduced ? 0 : 24 }}
+          initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 24 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: reduced ? 0 : 24 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 24 }}
+          transition={{ duration: reduced ? 0 : 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="fixed inset-x-4 bottom-4 z-[var(--z-modal)] mx-auto max-w-3xl border border-border bg-surface p-6 md:p-8"
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
