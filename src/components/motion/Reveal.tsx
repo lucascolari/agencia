@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-/** Entrada suave al entrar en viewport. Con reduced-motion no anima. */
+/**
+ * Entrada suave al entrar en viewport. Usa IntersectionObserver (Framer Motion
+ * whileInView): revela de forma fiable el contenido ya visible al montar y
+ * nunca lo deja atrapado invisible. Con reduced-motion no anima.
+ *
+ * Los reveals simples viven en Framer Motion; GSAP/ScrollTrigger queda para las
+ * escenas cinematográficas con pin/scrub (spec §52).
+ */
 export function Reveal({
   children,
   className,
@@ -20,32 +22,21 @@ export function Reveal({
   delay?: number;
   y?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
 
-  useGSAP(
-    () => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
-      gsap.from(ref.current, {
-        autoAlpha: 0,
-        y,
-        duration: 0.9,
-        ease: "power3.out",
-        delay,
-        scrollTrigger: {
-          trigger: ref.current,
-          start: "top 88%",
-          once: true,
-        },
-      });
-    },
-    { scope: ref },
-  );
+  if (reduced) {
+    return <div className={cn(className)}>{children}</div>;
+  }
 
   return (
-    <div ref={ref} className={cn(className)}>
+    <motion.div
+      className={cn(className)}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay }}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }

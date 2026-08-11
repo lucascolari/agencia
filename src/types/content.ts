@@ -35,6 +35,22 @@ export type ProjectCategory =
   | "produccion"
   | "social";
 
+/** Bloques modulares de un case study (spec §20). Cada proyecto compone los suyos. */
+export type CaseStudyBlock =
+  | { type: "text"; heading: string; body: string }
+  | { type: "media"; media: MediaSource; caption?: string }
+  | { type: "gallery"; items: MediaSource[] }
+  | { type: "quote"; quote: string; author: string }
+  | { type: "metrics"; items: { value: string; label: string }[] };
+
+export interface CaseStudy {
+  challenge: string;
+  strategy: string;
+  services: string[];
+  blocks: CaseStudyBlock[];
+  credits: { role: string; name: string }[];
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -46,6 +62,7 @@ export interface Project {
   /** Variación editorial del layout en /work. */
   layout: "full" | "split" | "tall";
   featured: boolean;
+  caseStudy: CaseStudy;
 }
 
 export interface CapabilityItem {
