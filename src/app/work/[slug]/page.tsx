@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { siteConfig } from "@/config/site";
+import { siteConfig, siteUrl } from "@/config/site";
 import { Container } from "@/components/ui/Container";
 import { MediaFrame } from "@/components/media/MediaFrame";
 import { CaseStudyBlocks } from "@/components/sections/CaseStudyBlocks";
@@ -25,9 +25,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = getProjectBySlug(slug);
   if (!project) return {};
+  const url = `/work/${project.slug}`;
   return {
     title: `${project.title} — ${project.client}`,
     description: project.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      title: `${project.title} — ${project.client}`,
+      description: project.summary,
+      url,
+    },
   };
 }
 
@@ -43,8 +51,22 @@ export default async function CaseStudyPage({
   const next = getNextProject(project.slug);
   const { caseStudy } = project;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: project.title,
+    about: caseStudy.challenge,
+    creator: { "@type": "Organization", name: siteConfig.name },
+    dateCreated: String(project.year),
+    url: `${siteUrl}/work/${project.slug}`,
+  };
+
   return (
     <article className="pb-[var(--section-gap)] pt-32">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <Container>
         <p className="text-label uppercase tracking-[0.24em] text-muted">

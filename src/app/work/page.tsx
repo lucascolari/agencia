@@ -16,6 +16,12 @@ const page = getUiStrings(siteConfig.locale).pages.work;
 export const metadata: Metadata = {
   title: page.meta.title,
   description: page.meta.description,
+  alternates: { canonical: "/work" },
+  openGraph: {
+    title: page.meta.title,
+    description: page.meta.description,
+    url: "/work",
+  },
 };
 
 export default async function WorkPage({

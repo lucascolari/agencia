@@ -13,6 +13,12 @@ const page = getUiStrings(siteConfig.locale).pages.about;
 export const metadata: Metadata = {
   title: page.meta.title,
   description: page.meta.description,
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: page.meta.title,
+    description: page.meta.description,
+    url: "/about",
+  },
 };
 
 export default function AboutPage() {

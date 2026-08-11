@@ -10,6 +10,12 @@ const page = getUiStrings(siteConfig.locale).pages.contact;
 export const metadata: Metadata = {
   title: page.meta.title,
   description: page.meta.description,
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: page.meta.title,
+    description: page.meta.description,
+    url: "/contact",
+  },
 };
 
 export default function ContactPage() {
