@@ -1,0 +1,27 @@
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+export function ButtonLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "inline-flex items-center gap-3 border border-border px-7 py-4",
+        "text-label uppercase tracking-[0.22em] text-text",
+        "transition-colors duration-[var(--duration-fast)]",
+        "hover:border-accent hover:text-accent",
+        className,
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
