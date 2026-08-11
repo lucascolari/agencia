@@ -1,0 +1,35 @@
+/* Design tokens — fuente única de la identidad. Marca placeholder: swap aquí. */
+:root {
+  /* Color (spec §6) */
+  --background: #0c0c0c;
+  --surface: #151513;
+  --primary: #f2f0eb;
+  --secondary: #b8b4ab;
+  --text: #f2f0eb;
+  --muted: #86827a;
+  --accent: #e4ff3f;
+  --border: rgba(242, 240, 235, 0.14);
+  --inverse: #0c0c0c;
+
+  /* Motion */
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 700ms;
+  --duration-cinematic: 1100ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-cinematic: cubic-bezier(0.83, 0, 0.17, 1);
+
+  /* Capas (spec §4) */
+  --z-background: 0;
+  --z-content: 10;
+  --z-navigation: 40;
+  --z-overlay: 50;
+  --z-modal: 60;
+  --z-cursor: 70;
+  --z-loader: 80;
+
+  /* Layout */
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --section-gap: clamp(6rem, 14vh, 10rem);
+}
