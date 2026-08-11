@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
 
-const lenisConstructor = vi.fn().mockImplementation(() => ({
-  raf: vi.fn(),
-  destroy: vi.fn(),
+const { lenisConstructor } = vi.hoisted(() => ({
+  lenisConstructor: vi.fn(function () {
+    return { raf: vi.fn(), destroy: vi.fn() };
+  }),
 }));
 
 vi.mock("lenis", () => ({ default: lenisConstructor }));
