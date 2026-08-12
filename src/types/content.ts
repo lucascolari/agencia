@@ -22,6 +22,9 @@ export interface MediaSource {
   src?: string;
   mobileSrc?: string;
   poster?: string;
+  /** Public ID de Cloudinary (ej: "proyectos/nucleo/hero"). Tiene prioridad
+   *  sobre `src` cuando hay Cloud name configurado. */
+  cloudinaryId?: string;
   alt: string;
   /** Color de superficie para placeholders editoriales. */
   tone?: string;

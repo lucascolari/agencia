@@ -1,18 +1,40 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { cloudinaryLoader, hasCloudinary } from "@/lib/media/cloudinary";
 import type { MediaSource } from "@/types/content";
 
 /**
  * Capa de media del sitio: las secciones nunca usan <video>/<img> directo.
- * Hoy resuelve archivos locales y placeholders editoriales; en fase 6 pasa a
- * resolver URLs de Mux/Cloudinary sin cambiar la interfaz.
+ * Resuelve, en este orden: imágenes de Cloudinary (CDN, AVIF/WebP responsive),
+ * archivos locales, video, o un placeholder editorial. Mux (video) se conecta
+ * después por esta misma interfaz.
  */
 export function MediaFrame({
   media,
   className,
+  sizes = "(max-width: 768px) 100vw, 66vw",
 }: {
   media: MediaSource;
   className?: string;
+  sizes?: string;
 }) {
+  // Imagen desde Cloudinary (cuando hay Cloud name configurado).
+  if (media.kind === "image" && media.cloudinaryId && hasCloudinary) {
+    return (
+      <div className={cn("relative h-full w-full overflow-hidden", className)}>
+        <Image
+          loader={cloudinaryLoader}
+          src={media.cloudinaryId}
+          alt={media.alt}
+          fill
+          sizes={sizes}
+          priority={media.priority === "critical"}
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
   if (media.kind === "video" && media.src) {
     return (
       <video
