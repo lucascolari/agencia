@@ -31,17 +31,20 @@
    los datos crudos. Los tipos de [`src/types/content.ts`](../../src/types/content.ts)
    son el contrato del schema de Sanity.
 
-## 3. Cloudinary (imágenes) — Fase 6
+## 3. Cloudinary (imágenes) — ✅ CONECTADO (2026-08-11)
 
-1. Crear cuenta en https://cloudinary.com → anotar **Cloud name**.
-2. Cargar `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` en `.env.local`.
-3. Punto de conexión: [`src/components/media/MediaFrame.tsx`](../../src/components/media/MediaFrame.tsx).
-   Hoy sirve archivos locales/placeholder. Se agrega la resolución de URLs de
-   Cloudinary (AVIF/WebP, transformaciones responsive) para `kind: "image"`.
-   El `MediaSource.src` pasa a ser el public ID de Cloudinary. Ninguna sección
-   se toca: todas pasan por `<MediaFrame>`.
-4. Agregar el dominio `res.cloudinary.com` a `img-src` en la CSP de
-   [`next.config.ts`](../../next.config.ts) y a `images.remotePatterns`.
+- Cloud name `jcwupda3` en `.env.local` (local) y en las env vars de Vercel.
+- Verificado: sirve WebP/AVIF con `f_auto,q_auto` por CDN (HTTP 200).
+- `res.cloudinary.com` ya está en la CSP `img-src` de `next.config.ts`.
+- **Cómo agregar una imagen real de un proyecto:**
+  1. El diseñador (o vos) sube la imagen al panel de Cloudinary → copia su
+     **public ID** (ej: `proyectos/nucleo/hero`).
+  2. En [`src/lib/content/projects.ts`](../../src/lib/content/projects.ts), en el
+     `cover` (o en un bloque de `caseStudy`), cambiar el placeholder por:
+     `{ kind: "image", cloudinaryId: "proyectos/nucleo/hero", alt: "…", priority: "high" }`.
+  3. Listo: `MediaFrame` la sirve optimizada y responsive vía `next/image`.
+- **Ojo:** subir imágenes desde código necesita el API secret (no hace falta
+  dármelo). El flujo es: se suben por el panel, el código las referencia por ID.
 
 ## 4. Mux (video) — Fase 6
 
@@ -82,6 +85,7 @@ A partir de ahí, el ciclo es el de siempre: editar → `git add .` →
 - ✅ Fases 1–5 completas (fundación, home, work+case studies, about+contact, 3D).
 - ✅ Fase 7 (autónoma) hecha: SEO técnico, headers de seguridad + CSP report-only,
   accesibilidad (skip link, landmarks, focus), sitemap, robots, JSON-LD.
-- ⏳ Fase 6 (Sanity/Cloudinary/Mux) y deploy: **esperan que crees las cuentas**.
+- ✅ Cloudinary conectado (imágenes). ⏳ Sanity y Mux: esperan sus cuentas.
+- ⏳ Deploy en Vercel: cuenta creada, falta importar el repo (ver §1).
 - Todo corre con contenido y media placeholder sobre design tokens; la marca
   real y el material del cliente entran por los puntos de conexión de arriba.

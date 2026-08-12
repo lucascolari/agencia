@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { cloudinaryLoader, hasCloudinary } from "@/lib/media/cloudinary";
+import { hasCloudinary } from "@/lib/media/cloudinary";
+import { CloudinaryImage } from "@/components/media/CloudinaryImage";
 import type { MediaSource } from "@/types/content";
 
 /**
@@ -22,11 +22,9 @@ export function MediaFrame({
   if (media.kind === "image" && media.cloudinaryId && hasCloudinary) {
     return (
       <div className={cn("relative h-full w-full overflow-hidden", className)}>
-        <Image
-          loader={cloudinaryLoader}
-          src={media.cloudinaryId}
+        <CloudinaryImage
+          id={media.cloudinaryId}
           alt={media.alt}
-          fill
           sizes={sizes}
           priority={media.priority === "critical"}
           className="object-cover"
