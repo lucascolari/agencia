@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { hasCloudinary } from "@/lib/media/cloudinary";
 import { CloudinaryImage } from "@/components/media/CloudinaryImage";
+import { MuxVideo } from "@/components/media/MuxVideo";
 import type { MediaSource } from "@/types/content";
 
 /**
@@ -18,6 +19,19 @@ export function MediaFrame({
   className?: string;
   sizes?: string;
 }) {
+  // Video desde Mux (streaming adaptativo).
+  if (media.kind === "mux" && media.playbackId) {
+    return (
+      <MuxVideo
+        playbackId={media.playbackId}
+        poster={media.poster}
+        alt={media.alt}
+        priority={media.priority === "critical"}
+        className={className}
+      />
+    );
+  }
+
   // Imagen desde Cloudinary (cuando hay Cloud name configurado).
   if (media.kind === "image" && media.cloudinaryId && hasCloudinary) {
     return (

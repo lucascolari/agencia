@@ -17,14 +17,16 @@ export interface PageContent {
 export type MediaPriority = "critical" | "high" | "lazy" | "idle";
 
 export interface MediaSource {
-  kind: "video" | "image" | "placeholder";
-  /** Ruta local hoy; URL de Mux/Cloudinary en fase 6 sin tocar componentes. */
+  kind: "mux" | "video" | "image" | "placeholder";
+  /** Ruta local (archivo en /public) para imagen o video. */
   src?: string;
   mobileSrc?: string;
   poster?: string;
   /** Public ID de Cloudinary (ej: "proyectos/nucleo/hero"). Tiene prioridad
    *  sobre `src` cuando hay Cloud name configurado. */
   cloudinaryId?: string;
+  /** Playback ID de Mux para `kind: "mux"` (streaming adaptativo). */
+  playbackId?: string;
   alt: string;
   /** Color de superficie para placeholders editoriales. */
   tone?: string;
@@ -80,6 +82,8 @@ export interface HomeContent {
     lead: string;
     scrollHint: string;
     timeLabel: string;
+    /** Video de fondo del hero (Mux). Si está, reemplaza el fondo 3D/gradiente. */
+    video?: MediaSource;
   };
   statement: { eyebrow: string; lines: string[] };
   selectedWork: { eyebrow: string; title: string; viewAll: string };

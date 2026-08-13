@@ -18,6 +18,12 @@ const es: UiStrings = {
         lead: "Marcas, campañas y experiencias digitales para empresas que quieren jugar en primera.",
         scrollHint: "Deslizá",
         timeLabel: "BUE",
+        video: {
+          kind: "mux",
+          playbackId: "EtebZE0200sWWERngLdoDO3HV83X5QbDqK02QSIGOS1qms",
+          alt: "Reel de gular",
+          priority: "critical",
+        },
       },
       statement: {
         eyebrow: "Manifiesto",

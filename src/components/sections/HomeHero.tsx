@@ -3,6 +3,7 @@
 import { motion, useReducedMotion, type Variants } from "motion/react";
 import { Container } from "@/components/ui/Container";
 import { Hero3D } from "@/components/3d/Hero3D";
+import { MediaFrame } from "@/components/media/MediaFrame";
 import { useLocalTime } from "@/hooks/useLocalTime";
 import type { HomeContent } from "@/types/content";
 
@@ -29,20 +30,41 @@ export function HomeHero({
     }),
   };
 
+  const hasVideo = Boolean(content.video);
+
   return (
     <section className="relative flex min-h-[100svh] flex-col justify-between overflow-hidden pb-10 pt-32">
-      {/* Placeholder del video de fondo (fase 6: Mux). Gradiente editorial sobrio. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-20"
-        style={{
-          background:
-            "radial-gradient(120% 80% at 70% 0%, #1b1b1a 0%, var(--background) 60%)",
-        }}
-      />
-
-      {/* Objeto de marca 3D (solo si el dispositivo lo permite; fallback = gradiente). */}
-      <Hero3D />
+      {hasVideo ? (
+        <>
+          {/* Video de fondo fullscreen (Mux). */}
+          <div aria-hidden className="absolute inset-0 -z-20">
+            <MediaFrame media={content.video!} sizes="100vw" />
+          </div>
+          {/* Overlay para legibilidad del texto sobre el video. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(12,12,11,0.55) 0%, rgba(12,12,11,0.25) 40%, rgba(12,12,11,0.75) 100%)",
+            }}
+          />
+        </>
+      ) : (
+        <>
+          {/* Gradiente editorial sobrio como fondo alternativo. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-20"
+            style={{
+              background:
+                "radial-gradient(120% 80% at 70% 0%, #1b1b1a 0%, var(--background) 60%)",
+            }}
+          />
+          {/* Objeto de marca 3D (solo si el dispositivo lo permite; fallback = gradiente). */}
+          <Hero3D />
+        </>
+      )}
 
       <Container className="flex items-center justify-between text-label uppercase tracking-[0.24em] text-muted">
         <motion.span variants={fade} custom={0} initial="hidden" animate="show">
