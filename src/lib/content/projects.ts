@@ -1,4 +1,4 @@
-import type { Project, ProjectCategory } from "@/types/content";
+import type { MediaSource, Project, ProjectCategory } from "@/types/content";
 
 export const CATEGORY_LABELS: Record<ProjectCategory, string> = {
   branding: "Branding",
@@ -17,307 +17,157 @@ export const CATEGORY_ORDER: ProjectCategory[] = [
   "social",
 ];
 
+/** Helper para un cover de video de Mux. */
+function muxCover(playbackId: string, alt: string): MediaSource {
+  return { kind: "mux", playbackId, alt, priority: "high" };
+}
+
 /**
- * Proyectos placeholder (clientes ficticios) hasta que llegue el material real.
- * En fase 6 esta capa pasa a leer de Sanity sin cambiar su interfaz.
+ * Portfolio real de gular. Videos alojados en Mux (Playback IDs).
+ * Los títulos son los reales; las descripciones detalladas de cada caso se
+ * completan más adelante con el material del cliente.
  */
 const projects: Project[] = [
   {
-    slug: "nucleo-rebrand",
-    title: "Una marca que vuelve a hervir",
-    client: "Núcleo",
+    slug: "envision",
+    title: "Envision",
+    client: "Envision",
     year: 2026,
-    categories: ["branding", "campanas"],
+    categories: ["produccion", "campanas"],
     summary:
-      "Rebranding integral y campaña de relanzamiento para una marca de bebidas con 40 años de historia.",
-    cover: {
-      kind: "placeholder",
-      alt: "Identidad visual de Núcleo",
-      tone: "#23303a",
-      priority: "high",
-    },
+      "Producción audiovisual integral: showreel de marca y campaña.",
+    cover: muxCover(
+      "H8ob3JuHyeu301QekfX014XIWrdmHBQDZKhul6Mi9FfcQ",
+      "Showreel de Envision",
+    ),
     layout: "full",
     featured: true,
     caseStudy: {
       challenge:
-        "Núcleo era una marca querida pero envejecida. Cuarenta años de historia pesaban como ancla, no como bandera. Había que rejuvenecer sin traicionar.",
+        "Mostrar la ambición de la marca en movimiento, con un lenguaje audiovisual a la altura.",
       strategy:
-        "Recuperamos el gesto fundacional de la marca —el burbujeo— y lo convertimos en sistema: un lenguaje visual vivo, que se mueve y reacciona, tan cómodo en una lata como en una pantalla.",
-      services: ["Estrategia de marca", "Identidad visual", "Campaña", "Motion"],
+        "Dirección, edición y postproducción de un showreel y una campaña que hablan el mismo idioma visual.",
+      services: ["Dirección", "Producción audiovisual", "Postproducción"],
       blocks: [
         {
           type: "media",
-          media: {
-            kind: "placeholder",
-            alt: "Sistema de identidad Núcleo",
-            tone: "#23303a",
-            priority: "high",
-          },
-          caption: "Nuevo sistema de identidad y packaging.",
-        },
-        {
-          type: "text",
-          heading: "Del logo al sistema",
-          body: "No rediseñamos un logo: construimos un sistema capaz de vivir en cientos de piezas sin perder el pulso. Tipografía propia, paleta que respira y un principio de movimiento que atraviesa todo.",
-        },
-        {
-          type: "metrics",
-          items: [
-            { value: "+38%", label: "Reconocimiento de marca" },
-            { value: "3", label: "Mercados nuevos" },
-            { value: "40°", label: "Aniversario relanzado" },
-          ],
-        },
-        {
-          type: "quote",
-          quote:
-            "Volvimos a ser la marca que éramos, pero por primera vez parecemos del futuro.",
-          author: "Dirección de Marketing, Núcleo",
+          media: muxCover(
+            "1VlwSdLlPCgBkJ3PZgPnTqPAsieJdFWfijy5VWdyN5M",
+            "Campaña para Envision",
+          ),
+          caption: "Campaña.",
         },
       ],
-      credits: [
-        { role: "Dirección creativa", name: "Estudio" },
-        { role: "Diseño", name: "Equipo de marca" },
-        { role: "Motion", name: "Equipo audiovisual" },
-      ],
+      credits: [{ role: "Producción", name: "gular" }],
     },
   },
   {
-    slug: "faro-campana",
-    title: "Asegurar también es emocionar",
-    client: "Faro Seguros",
+    slug: "triumph-rider-academy",
+    title: "Triumph Rider Academy",
+    client: "Triumph",
     year: 2026,
-    categories: ["campanas", "produccion"],
+    categories: ["produccion", "campanas"],
     summary:
-      "Campaña audiovisual multiplataforma que corrió el eje de la categoría: del miedo a la confianza.",
-    cover: {
-      kind: "mux",
-      playbackId: "ABlFVC01wyHIYcg65hhSJ4hh01XtRSbQlW01jRVg85kpSI",
-      alt: "Video institucional Agencias de Turismo",
-      priority: "high",
-    },
+      "Dirección, edición y postproducción de la campaña Rider Academy.",
+    cover: muxCover(
+      "WGUWPcpFD00f8XidLzuoAdR6LZ6eBjJRmPJTPn7XMM9g",
+      "Campaña Triumph Rider Academy",
+    ),
     layout: "full",
     featured: true,
     caseStudy: {
       challenge:
-        "Toda la categoría de seguros vende miedo. Faro quería vender lo contrario: la tranquilidad de estar cubierto, contada sin letra chica.",
+        "Transmitir la experiencia de la Rider Academy con la energía de la marca.",
       strategy:
-        "Una campaña construida sobre historias reales, filmadas con lenguaje de cine. Menos siniestro, más vida. El seguro como quien enciende una luz, no como quien anticipa la tormenta.",
-      services: ["Idea", "Producción audiovisual", "Dirección de arte", "Medios"],
-      blocks: [
-        {
-          type: "media",
-          media: {
-            kind: "placeholder",
-            alt: "Film principal de Faro",
-            tone: "#3a2f28",
-            priority: "high",
-          },
-          caption: "Film principal — 60 segundos.",
-        },
-        {
-          type: "text",
-          heading: "Una luz en la costa",
-          body: "El faro dejó de ser un logo para volverse metáfora: la marca que ilumina cuando todo se pone oscuro. Cada pieza de la campaña es una variación de esa misma luz.",
-        },
-        {
-          type: "gallery",
-          items: [
-            {
-              kind: "placeholder",
-              alt: "Frame 01",
-              tone: "#3a2f28",
-              priority: "lazy",
-            },
-            {
-              kind: "placeholder",
-              alt: "Frame 02",
-              tone: "#463a30",
-              priority: "lazy",
-            },
-            {
-              kind: "placeholder",
-              alt: "Frame 03",
-              tone: "#2f2822",
-              priority: "lazy",
-            },
-          ],
-        },
-        {
-          type: "metrics",
-          items: [
-            { value: "12M", label: "Views orgánicas" },
-            { value: "+21%", label: "Cotizaciones online" },
-            { value: "#1", label: "Recuerdo de campaña" },
-          ],
-        },
-      ],
-      credits: [
-        { role: "Dirección creativa", name: "Estudio" },
-        { role: "Producción", name: "Casa productora" },
-        { role: "Dirección", name: "Realización" },
-      ],
+        "Realización integral de la campaña: dirección, edición y postproducción.",
+      services: ["Dirección", "Edición", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
     },
   },
   {
-    slug: "andino-ecommerce",
-    title: "El mercado que baja de la montaña",
-    client: "Mercado Andino",
-    year: 2025,
-    categories: ["digital", "branding"],
-    summary:
-      "Plataforma de e-commerce y sistema de diseño para el marketplace regional de productos de origen.",
-    cover: {
-      kind: "placeholder",
-      alt: "Plataforma digital de Mercado Andino",
-      tone: "#2e3a2f",
-      priority: "lazy",
-    },
-    layout: "tall",
-    featured: true,
-    caseStudy: {
-      challenge:
-        "Cientos de productores de altura, cero infraestructura digital. Había que conectar el origen con la ciudad sin que se perdiera la historia en el camino.",
-      strategy:
-        "Diseñamos una plataforma y un sistema de diseño escalable que le da a cada productor una vidriera con identidad propia, sin romper la coherencia del conjunto.",
-      services: ["Producto digital", "Design system", "E-commerce", "Branding"],
-      blocks: [
-        {
-          type: "media",
-          media: {
-            kind: "placeholder",
-            alt: "Interfaz de Mercado Andino",
-            tone: "#2e3a2f",
-            priority: "high",
-          },
-          caption: "Home y ficha de producto.",
-        },
-        {
-          type: "text",
-          heading: "Origen, a un clic",
-          body: "Cada producto cuenta de dónde viene, quién lo hizo y a qué altura creció. La tecnología desaparece para que la historia sea protagonista.",
-        },
-        {
-          type: "metrics",
-          items: [
-            { value: "240+", label: "Productores online" },
-            { value: "x3", label: "Ventas primer trimestre" },
-            { value: "1.2s", label: "LCP promedio" },
-          ],
-        },
-      ],
-      credits: [
-        { role: "Dirección de producto", name: "Estudio" },
-        { role: "Ingeniería", name: "Equipo de desarrollo" },
-        { role: "Diseño", name: "Equipo de producto" },
-      ],
-    },
-  },
-  {
-    slug: "volta-lanzamiento",
-    title: "Electricidad en estado puro",
-    client: "Volta Motos",
-    year: 2025,
-    categories: ["produccion", "digital"],
-    summary:
-      "Film de lanzamiento y experiencia web inmersiva para la primera moto eléctrica de fabricación nacional.",
-    cover: {
-      kind: "mux",
-      playbackId: "WGUWPcpFD00f8XidLzuoAdR6LZ6eBjJRmPJTPn7XMM9g",
-      alt: "Campaña Triumph Rider Academy",
-      priority: "high",
-    },
+    slug: "agencias-de-turismo",
+    title: "Institucional Agencias de Turismo",
+    client: "Turismo",
+    year: 2026,
+    categories: ["produccion"],
+    summary: "Video institucional para el sector de agencias de turismo.",
+    cover: muxCover(
+      "ABlFVC01wyHIYcg65hhSJ4hh01XtRSbQlW01jRVg85kpSI",
+      "Video institucional Agencias de Turismo",
+    ),
     layout: "full",
     featured: true,
     caseStudy: {
       challenge:
-        "Lanzar la primera moto eléctrica nacional contra gigantes globales. Sin presupuesto de gigante, pero con una historia que ellos no tienen: es de acá.",
-      strategy:
-        "Un film de lanzamiento con tensión de tráiler y una experiencia web que deja tocar la moto antes de tenerla enfrente. Orgullo local, ejecución global.",
-      services: ["Film", "Experiencia web", "3D", "Lanzamiento"],
-      blocks: [
-        {
-          type: "media",
-          media: {
-            kind: "placeholder",
-            alt: "Film de lanzamiento Volta",
-            tone: "#3a2836",
-            priority: "high",
-          },
-          caption: "Film de lanzamiento.",
-        },
-        {
-          type: "quote",
-          quote:
-            "Agotamos la preventa en 72 horas. La web hizo la mitad del trabajo.",
-          author: "Fundador, Volta Motos",
-        },
-        {
-          type: "metrics",
-          items: [
-            { value: "72h", label: "Preventa agotada" },
-            { value: "+90", label: "Score de performance" },
-            { value: "8", label: "Medios de prensa" },
-          ],
-        },
-      ],
-      credits: [
-        { role: "Dirección creativa", name: "Estudio" },
-        { role: "3D & Web", name: "Equipo interactivo" },
-        { role: "Film", name: "Casa productora" },
-      ],
+        "Comunicar valor y confianza en una pieza institucional clara y cálida.",
+      strategy: "Guion, realización y postproducción del video institucional.",
+      services: ["Guion", "Producción audiovisual", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
     },
   },
   {
-    slug: "rioja-social",
-    title: "Historias que fermentan",
-    client: "Rioja Films",
-    year: 2025,
-    categories: ["social", "produccion"],
-    summary:
-      "Dirección creativa y contenido social para una productora que necesitaba hablar con su propia voz.",
-    cover: {
-      kind: "placeholder",
-      alt: "Contenido social de Rioja Films",
-      tone: "#32323c",
-      priority: "lazy",
+    slug: "sky",
+    title: "Sky",
+    client: "Sky",
+    year: 2026,
+    categories: ["produccion"],
+    summary: "Pieza audiovisual de marca.",
+    cover: muxCover(
+      "T3U83BLLLA55g3UdEv5yRHWSrwGJ6x8boWmJpcOJDPY",
+      "Pieza audiovisual para Sky",
+    ),
+    layout: "full",
+    featured: true,
+    caseStudy: {
+      challenge: "Una pieza que respire la identidad de la marca.",
+      strategy: "Realización y postproducción de la pieza.",
+      services: ["Producción audiovisual", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
     },
+  },
+  {
+    slug: "reel",
+    title: "Reel de muestra",
+    client: "gular",
+    year: 2026,
+    categories: ["produccion"],
+    summary: "Una selección de trabajos audiovisuales en movimiento.",
+    cover: muxCover(
+      "ZEIHgVg02A9u6GMsZF8uetgclMhg7xBLYw12lAfdmIc8",
+      "Reel de muestra de gular",
+    ),
     layout: "full",
     featured: false,
     caseStudy: {
-      challenge:
-        "Una productora que filma para todos pero no tenía tiempo de filmarse a sí misma. El zapatero descalzo del audiovisual.",
-      strategy:
-        "Un sistema de contenido social liviano de producir pero imposible de confundir: formato propio, tono propio, ritmo propio. Consistencia antes que volumen.",
-      services: ["Dirección creativa", "Contenido social", "Producción"],
-      blocks: [
-        {
-          type: "media",
-          media: {
-            kind: "placeholder",
-            alt: "Grilla de contenido Rioja",
-            tone: "#32323c",
-            priority: "high",
-          },
-          caption: "Sistema de contenido para redes.",
-        },
-        {
-          type: "text",
-          heading: "La voz propia",
-          body: "Definimos un formato reconocible a primera vista y un calendario sostenible. La marca dejó de improvisar y empezó a construir.",
-        },
-        {
-          type: "metrics",
-          items: [
-            { value: "+64%", label: "Engagement" },
-            { value: "x2.5", label: "Seguidores en 6 meses" },
-          ],
-        },
-      ],
-      credits: [
-        { role: "Dirección creativa", name: "Estudio" },
-        { role: "Contenido", name: "Equipo social" },
-      ],
+      challenge: "Resumir el tono y la calidad del estudio en un solo reel.",
+      strategy: "Montaje de piezas seleccionadas con un pulso propio.",
+      services: ["Edición", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
+    },
+  },
+  {
+    slug: "stand",
+    title: "Video para stand",
+    client: "Activación",
+    year: 2026,
+    categories: ["produccion"],
+    summary: "Contenido audiovisual para stand y activación de marca.",
+    cover: muxCover(
+      "Z02RUCH8lZJvFJ8pOx16GgjUXBFkJGJ9Re4r9BtZQvvA",
+      "Video para stand",
+    ),
+    layout: "full",
+    featured: false,
+    caseStudy: {
+      challenge: "Captar la atención en un entorno de evento, en loop.",
+      strategy: "Pieza pensada para pantalla grande y reproducción continua.",
+      services: ["Producción audiovisual", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
     },
   },
 ];

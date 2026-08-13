@@ -22,13 +22,12 @@ describe("projects", () => {
   });
 
   it("encuentra un proyecto por slug", () => {
-    expect(getProjectBySlug("nucleo-rebrand")?.client).toBe("Núcleo");
+    expect(getProjectBySlug("envision")?.client).toBe("Envision");
     expect(getProjectBySlug("no-existe")).toBeUndefined();
   });
 
-  it("cada proyecto tiene un case study con bloques y créditos", () => {
+  it("cada proyecto tiene case study con servicios y créditos", () => {
     for (const p of getProjects()) {
-      expect(p.caseStudy.blocks.length).toBeGreaterThan(0);
       expect(p.caseStudy.credits.length).toBeGreaterThan(0);
       expect(p.caseStudy.services.length).toBeGreaterThan(0);
     }
@@ -36,15 +35,19 @@ describe("projects", () => {
 
   it("lista solo categorías usadas, en orden canónico", () => {
     const cats = getUsedCategories();
-    expect(cats).toContain("branding");
-    expect(cats.indexOf("branding")).toBeLessThan(cats.indexOf("digital"));
+    expect(cats).toContain("produccion");
+    expect(cats).toContain("campanas");
+    // campanas va antes que produccion en el orden canónico.
+    expect(cats.indexOf("campanas")).toBeLessThan(cats.indexOf("produccion"));
   });
 
   it("filtra por categoría y sin categoría devuelve todos", () => {
     expect(filterProjects(null).length).toBe(getProjects().length);
-    const branding = filterProjects("branding");
-    expect(branding.length).toBeGreaterThan(0);
-    expect(branding.every((p) => p.categories.includes("branding"))).toBe(true);
+    const produccion = filterProjects("produccion");
+    expect(produccion.length).toBeGreaterThan(0);
+    expect(produccion.every((p) => p.categories.includes("produccion"))).toBe(
+      true,
+    );
   });
 
   it("devuelve el siguiente proyecto de forma circular", () => {
