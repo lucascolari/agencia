@@ -222,12 +222,12 @@ const projects: Project[] = [
     summary:
       "Film de lanzamiento y experiencia web inmersiva para la primera moto eléctrica de fabricación nacional.",
     cover: {
-      kind: "placeholder",
-      alt: "Lanzamiento de Volta Motos",
-      tone: "#3a2836",
-      priority: "lazy",
+      kind: "mux",
+      playbackId: "WGUWPcpFD00f8XidLzuoAdR6LZ6eBjJRmPJTPn7XMM9g",
+      alt: "Campaña Triumph Rider Academy",
+      priority: "high",
     },
-    layout: "split",
+    layout: "full",
     featured: true,
     caseStudy: {
       challenge:
