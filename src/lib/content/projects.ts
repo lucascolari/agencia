@@ -91,12 +91,12 @@ const projects: Project[] = [
     summary:
       "Campaña audiovisual multiplataforma que corrió el eje de la categoría: del miedo a la confianza.",
     cover: {
-      kind: "placeholder",
-      alt: "Campaña de Faro Seguros",
-      tone: "#3a2f28",
-      priority: "lazy",
+      kind: "mux",
+      playbackId: "ABlFVC01wyHIYcg65hhSJ4hh01XtRSbQlW01jRVg85kpSI",
+      alt: "Video institucional Agencias de Turismo",
+      priority: "high",
     },
-    layout: "split",
+    layout: "full",
     featured: true,
     caseStudy: {
       challenge:
