@@ -215,8 +215,8 @@ const es: UiStrings = {
       channels: [
         {
           label: "Email",
-          value: "hola@agencia.com",
-          href: "mailto:hola@agencia.com",
+          value: "hola@gular.com",
+          href: "mailto:hola@gular.com",
         },
         {
           label: "WhatsApp",
@@ -225,13 +225,13 @@ const es: UiStrings = {
         },
         {
           label: "Instagram",
-          value: "@agencia",
-          href: "https://instagram.com/agencia",
+          value: "@gular",
+          href: "https://instagram.com/gular",
         },
         {
           label: "LinkedIn",
-          value: "/company/agencia",
-          href: "https://linkedin.com/company/agencia",
+          value: "/company/gular",
+          href: "https://linkedin.com/company/gular",
         },
       ],
       timeLabel: "Hora local en Buenos Aires",

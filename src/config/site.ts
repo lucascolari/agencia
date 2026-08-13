@@ -1,14 +1,14 @@
 export const siteConfig = {
-  name: "AGENCIA",
+  name: "gular",
   tagline: "Soluciones digitales",
   description:
     "Estudio de soluciones digitales en Buenos Aires. Marcas, campañas y experiencias que dejan huella.",
   locale: "es",
   location: "Buenos Aires, Argentina",
-  email: "hola@agencia.com",
+  email: "hola@gular.com",
   social: {
-    instagram: "https://instagram.com/agencia",
-    linkedin: "https://linkedin.com/company/agencia",
+    instagram: "https://instagram.com/gular",
+    linkedin: "https://linkedin.com/company/gular",
     whatsapp: "https://wa.me/5491100000000",
   },
 } as const;

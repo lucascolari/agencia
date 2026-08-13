@@ -64,7 +64,7 @@ export const legalPages: Record<
       },
       {
         heading: "Contacto",
-        body: "Ante cualquier duda sobre el tratamiento de tus datos, escribinos a hola@agencia.com.",
+        body: "Ante cualquier duda sobre el tratamiento de tus datos, escribinos a hola@gular.com.",
       },
     ],
   },
