@@ -21,7 +21,9 @@ export function SelectedWork3D({
 }) {
   const cap = useDeviceCapability();
 
-  if (!cap.ready || !cap.allow3D) {
+  // Se habilita en cualquier dispositivo con WebGL (incluido celular con arrastre
+  // táctil). Con reduced-motion o sin WebGL cae a la grilla (accesible e indexable).
+  if (!cap.ready || !cap.webgl || cap.reducedMotion) {
     return <HomeSelectedWork content={content} />;
   }
 
