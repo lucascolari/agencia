@@ -29,9 +29,15 @@ export function SelectedWorkScroll({
   const container = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
 
+  // Se habilita en cualquier dispositivo con WebGL (incluido celular). Con
+  // reduced-motion o sin WebGL cae a la grilla (accesible e indexable).
+  const enabled = cap.webgl && !cap.reducedMotion;
+
   useGSAP(
     () => {
-      if (!cap.allow3D) return;
+      if (!enabled) return;
+      // Evita saltos por la barra de direcciones del navegador móvil.
+      ScrollTrigger.config({ ignoreMobileResize: true });
       const st = ScrollTrigger.create({
         trigger: container.current,
         start: "top top",
@@ -44,10 +50,10 @@ export function SelectedWorkScroll({
       });
       return () => st.kill();
     },
-    { scope: container, dependencies: [cap.allow3D] },
+    { scope: container, dependencies: [enabled] },
   );
 
-  if (cap.ready && !cap.allow3D) {
+  if (cap.ready && !enabled) {
     return <HomeSelectedWork content={content} />;
   }
 
@@ -57,7 +63,7 @@ export function SelectedWorkScroll({
       className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden"
     >
       <div aria-hidden className="absolute inset-0 -z-10">
-        {cap.allow3D && <Scene progressRef={progress} />}
+        {enabled && <Scene progressRef={progress} lite={cap.lowEnd} />}
       </div>
 
       <Container className="pointer-events-none relative">

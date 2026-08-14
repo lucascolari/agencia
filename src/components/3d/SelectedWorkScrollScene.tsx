@@ -80,11 +80,16 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
 
 export default function SelectedWorkScrollScene({
   progressRef,
+  lite = false,
 }: {
   progressRef: React.RefObject<number>;
+  lite?: boolean;
 }) {
   return (
-    <Canvas camera={{ position: [0, 0, 4.5], fov: 50 }} dpr={[1, 1.75]}>
+    <Canvas
+      camera={{ position: [0, 0, 4.5], fov: 50 }}
+      dpr={lite ? 1 : [1, 1.5]}
+    >
       <Suspense fallback={null}>
         <Corridor progressRef={progressRef} />
       </Suspense>
