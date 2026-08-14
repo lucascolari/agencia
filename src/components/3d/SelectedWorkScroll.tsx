@@ -35,7 +35,7 @@ export function SelectedWorkScroll({
       const st = ScrollTrigger.create({
         trigger: container.current,
         start: "top top",
-        end: "+=240%",
+        end: "+=340%",
         pin: true,
         scrub: 1,
         onUpdate: (self) => {
