@@ -5,11 +5,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
+import { useMemo } from "react";
 import { getProjects } from "@/lib/content/projects";
 import type { Project } from "@/types/content";
 
 const DEPTH = 7;
-const PLANE_W = 2.6;
+const VIEW_DIST = 3.6; // distancia a la que la cámara se para frente a cada portada
+const PLANE_W = 3;
 const PLANE_H = (PLANE_W * 9) / 16;
 
 function coverUrl(p: Project): string {
@@ -28,35 +30,48 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
   const group = useRef<THREE.Group>(null);
 
   const total = projects.length;
-  const startZ = 5;
-  const endZ = -(total - 1) * DEPTH - 5;
+
+  // Posición de cada portada: onda suave (carrusel) con leve subibaja.
+  const positions = useMemo(
+    () =>
+      projects.map((_, i) => ({
+        x: Math.sin(i * 0.8) * 2.0,
+        y: Math.sin(i * 1.4 + 0.5) * 0.6,
+        z: -i * DEPTH,
+      })),
+    [projects],
+  );
 
   useFrame((state) => {
     const p = progressRef.current ?? 0;
-    // La cámara vuela hacia adentro: las portadas vienen hacia el visitante.
-    state.camera.position.z = THREE.MathUtils.lerp(startZ, endZ, p);
-    state.camera.position.x = Math.sin(p * Math.PI * 2) * 0.4;
-    state.camera.lookAt(0, 0, state.camera.position.z - 6);
+    // "Estación" continua: la cámara se para de frente a cada portada y pasa
+    // suave a la siguiente, así cada trabajo se ve completo y centrado.
+    const s = p * (total - 1);
+    const i0 = Math.floor(s);
+    const i1 = Math.min(i0 + 1, total - 1);
+    const f = s - i0;
+    const cx = THREE.MathUtils.lerp(positions[i0].x, positions[i1].x, f);
+    const cy = THREE.MathUtils.lerp(positions[i0].y, positions[i1].y, f);
+    const cz = THREE.MathUtils.lerp(positions[i0].z, positions[i1].z, f);
+
+    state.camera.position.set(cx, cy, cz + VIEW_DIST);
+    state.camera.lookAt(cx, cy, cz);
 
     // Flotación sutil de cada portada.
     const t = state.clock.elapsedTime;
     group.current?.children.forEach((child, i) => {
-      child.position.y = child.userData.baseY + Math.sin(t * 0.5 + i) * 0.14;
+      child.position.y = child.userData.baseY + Math.sin(t * 0.5 + i) * 0.1;
     });
   });
 
   return (
     <group ref={group}>
       {projects.map((p, i) => {
-        // Carrusel que fluye: onda suave a los lados + leve subibaja, todas
-        // cerca del centro para que siempre se vean bien.
-        const x = Math.sin(i * 0.8) * 2.4;
-        const baseY = Math.sin(i * 1.4 + 0.5) * 0.7;
+        const { x, y: baseY } = positions[i];
         return (
           <mesh
             key={p.slug}
             position={[x, baseY, -i * DEPTH]}
-            rotation={[0, -x * 0.14, 0]}
             userData={{ baseY }}
             onClick={(e) => {
               e.stopPropagation();
