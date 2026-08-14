@@ -8,6 +8,7 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { SpaceBackground } from "@/components/3d/SpaceBackground";
 import { ConsentBanner } from "@/features/consent/ConsentBanner";
 
 const archivo = Archivo({
@@ -62,6 +63,7 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         <OrganizationJsonLd />
+        <SpaceBackground />
         <Loader brand={siteConfig.name} />
         <CustomCursor />
         <SmoothScrollProvider>

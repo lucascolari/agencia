@@ -23,8 +23,17 @@
   --text-label: 0.75rem;
 }
 
+/* Base de espacio profundo siempre presente (detrás del canvas WebGL y como
+   fallback cuando no hay WebGL). El body es transparente para que el fondo
+   espacial se vea a través del contenido. */
+html {
+  background:
+    radial-gradient(120% 90% at 50% 0%, #0a0b16 0%, var(--space) 55%),
+    var(--space);
+}
+
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

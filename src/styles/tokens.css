@@ -2,6 +2,8 @@
 :root {
   /* Color (spec §6) */
   --background: #0c0c0c;
+  /* Base de "espacio profundo": fondo global detrás del canvas WebGL. */
+  --space: #05060d;
   --surface: #151513;
   --primary: #f2f0eb;
   --secondary: #b8b4ab;
