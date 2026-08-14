@@ -55,6 +55,27 @@ function localGallery(folder: string, count: number, altBase: string) {
  */
 const projects: Project[] = [
   {
+    slug: "aperol",
+    title: "Aperol",
+    client: "Aperol",
+    year: 2026,
+    categories: ["produccion", "campanas"],
+    summary: "Producción audiovisual para la marca.",
+    cover: muxCover(
+      "kZTxxHwzZIMo4t0202uxRFNMmMVgs3ZGHKukLMz3papKU",
+      "Pieza audiovisual para Aperol",
+    ),
+    layout: "full",
+    featured: true,
+    caseStudy: {
+      challenge: "Una pieza con el espíritu y el color de la marca.",
+      strategy: "Realización y postproducción de la pieza.",
+      services: ["Producción audiovisual", "Postproducción"],
+      blocks: [],
+      credits: [{ role: "Producción", name: "gular" }],
+    },
+  },
+  {
     slug: "envision",
     title: "Envision",
     client: "Envision",
