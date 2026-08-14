@@ -10,7 +10,7 @@ import * as THREE from "three";
  * puntero: da sensación de estar flotando en el espacio. Con reduced-motion
  * queda estático. Geometría de puntos: liviana para el GPU.
  */
-function Field({ reduced }: { reduced: boolean }) {
+function Field({ reduced, lite }: { reduced: boolean; lite: boolean }) {
   const group = useRef<THREE.Group>(null);
   const pointer = useRef({ x: 0, y: 0 });
 
@@ -36,7 +36,7 @@ function Field({ reduced }: { reduced: boolean }) {
       <Stars
         radius={90}
         depth={60}
-        count={4500}
+        count={lite ? 2200 : 4500}
         factor={4}
         saturation={0}
         fade
@@ -46,16 +46,22 @@ function Field({ reduced }: { reduced: boolean }) {
   );
 }
 
-export default function SpaceScene({ reduced }: { reduced: boolean }) {
+export default function SpaceScene({
+  reduced,
+  lite = false,
+}: {
+  reduced: boolean;
+  lite?: boolean;
+}) {
   return (
     <Canvas
       camera={{ position: [0, 0, 1], fov: 60 }}
-      dpr={[1, 1.5]}
+      dpr={lite ? 1 : [1, 1.5]}
       gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
       style={{ pointerEvents: "none" }}
       frameloop={reduced ? "demand" : "always"}
     >
-      <Field reduced={reduced} />
+      <Field reduced={reduced} lite={lite} />
     </Canvas>
   );
 }

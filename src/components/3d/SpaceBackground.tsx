@@ -17,14 +17,14 @@ export function SpaceBackground() {
   const cap = useDeviceCapability();
   const reduced = useReducedMotion();
 
-  if (!cap.ready || !cap.webgl || cap.lowEnd) return null;
+  // El starfield es liviano: se muestra en cualquier dispositivo con WebGL
+  // (incluido celular). En gama baja va en modo "lite" (menos estrellas, dpr 1).
+  // Sin WebGL queda el fondo de espacio en CSS (globals.css).
+  if (!cap.ready || !cap.webgl) return null;
 
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10"
-    >
-      <SpaceScene reduced={Boolean(reduced)} />
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+      <SpaceScene reduced={Boolean(reduced)} lite={cap.lowEnd} />
     </div>
   );
 }

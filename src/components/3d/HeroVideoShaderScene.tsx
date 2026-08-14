@@ -37,16 +37,16 @@ const FRAG = /* glsl */ `
   void main() {
     vec2 uv = coverUv(vUv);
     float d = distance(vUv, uMouse);
-    float falloff = smoothstep(0.55, 0.0, d);
+    float falloff = smoothstep(0.75, 0.0, d);
 
-    // Ondulación sutil hacia el puntero + latido idle.
+    // Ondulación hacia el puntero + latido idle.
     vec2 dir = normalize(vUv - uMouse + 0.0001);
-    float ripple = sin(d * 16.0 - uTime * 2.2) * 0.005 * falloff * uHover;
-    float idle = sin(uTime * 0.6 + vUv.y * 6.0) * 0.0012;
+    float ripple = sin(d * 14.0 - uTime * 2.4) * 0.018 * falloff * uHover;
+    float idle = sin(uTime * 0.6 + vUv.y * 6.0) * 0.0015;
     uv += dir * ripple + vec2(idle, 0.0);
 
     // RGB-split proporcional a la cercanía del puntero.
-    float split = 0.006 * falloff * uHover;
+    float split = 0.02 * falloff * uHover;
     float r = texture2D(uTexture, uv + dir * split).r;
     float g = texture2D(uTexture, uv).g;
     float b = texture2D(uTexture, uv - dir * split).b;
@@ -116,7 +116,21 @@ function VideoPlane({
   const { viewport, size } = useThree();
   const mat = useRef<THREE.ShaderMaterial>(null);
   const mouse = useRef(new THREE.Vector2(0.5, 0.5));
+  const mouseTarget = useRef(new THREE.Vector2(0.5, 0.5));
   const hover = useRef(0);
+
+  // El canvas tiene pointer-events:none (no tapa los clicks del hero), así que
+  // leemos el puntero desde la ventana en coordenadas UV (0..1, con y hacia arriba).
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      mouseTarget.current.set(
+        e.clientX / window.innerWidth,
+        1 - e.clientY / window.innerHeight,
+      );
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
 
   const uniforms = useMemo(
     () => ({
@@ -130,16 +144,14 @@ function VideoPlane({
     [],
   );
 
-  useFrame((state, dt) => {
+  useFrame((_state, dt) => {
     const u = mat.current?.uniforms;
     if (!u) return;
     if (texRef.current) u.uTexture.value = texRef.current;
     u.uVideoAspect.value = aspect.current;
     u.uPlaneAspect.value = size.width / size.height;
     u.uTime.value += dt;
-    const mx = state.pointer.x * 0.5 + 0.5;
-    const my = state.pointer.y * 0.5 + 0.5;
-    mouse.current.lerp(new THREE.Vector2(mx, my), 0.08);
+    mouse.current.lerp(mouseTarget.current, 0.1);
     u.uMouse.value.copy(mouse.current);
     hover.current += ((reduced ? 0 : 1) - hover.current) * 0.05;
     u.uHover.value = hover.current;
