@@ -22,6 +22,32 @@ function muxCover(playbackId: string, alt: string): MediaSource {
   return { kind: "mux", playbackId, alt, priority: "high" };
 }
 
+/** Imagen local (extraída de PDF, en /public/media/proyectos). */
+function localImage(
+  folder: string,
+  n: number,
+  altBase: string,
+  priority: MediaSource["priority"] = "lazy",
+): MediaSource {
+  const num = String(n).padStart(2, "0");
+  return {
+    kind: "image",
+    src: `/media/proyectos/${folder}/${folder}-${num}.webp`,
+    alt: `${altBase} — ${num}`,
+    priority,
+  };
+}
+
+/** Galería de imágenes locales numeradas 1..count. */
+function localGallery(folder: string, count: number, altBase: string) {
+  return {
+    type: "gallery" as const,
+    items: Array.from({ length: count }, (_, i) =>
+      localImage(folder, i + 1, altBase),
+    ),
+  };
+}
+
 /**
  * Portfolio real de gular. Videos alojados en Mux (Playback IDs).
  * Los títulos son los reales; las descripciones detalladas de cada caso se
@@ -57,6 +83,7 @@ const projects: Project[] = [
           ),
           caption: "Campaña.",
         },
+        localGallery("motorola", 6, "Envision — WE'REAL 360"),
       ],
       credits: [{ role: "Producción", name: "gular" }],
     },
@@ -168,6 +195,44 @@ const projects: Project[] = [
       services: ["Producción audiovisual", "Postproducción"],
       blocks: [],
       credits: [{ role: "Producción", name: "gular" }],
+    },
+  },
+  {
+    slug: "jolly-hygge",
+    title: "Jolly Hygge",
+    client: "Jolly",
+    year: 2026,
+    categories: ["branding"],
+    summary: "Manual de marca y sistema visual para un lifestyle de real food.",
+    cover: localImage("jolly", 1, "Manual de marca Jolly Hygge", "high"),
+    layout: "full",
+    featured: true,
+    caseStudy: {
+      challenge:
+        "Construir una identidad cálida y consistente para una marca de lifestyle.",
+      strategy:
+        "Sistema visual completo: logo, tipografías, paleta, usos y aplicaciones.",
+      services: ["Branding", "Sistema visual", "Manual de marca"],
+      blocks: [localGallery("jolly", 62, "Manual de marca Jolly Hygge")],
+      credits: [{ role: "Diseño", name: "gular" }],
+    },
+  },
+  {
+    slug: "megaled",
+    title: "Megaled",
+    client: "Megaled",
+    year: 2026,
+    categories: ["branding", "digital"],
+    summary: "Propuesta creativa y de contenido.",
+    cover: localImage("megaled-hbo", 1, "Propuesta Megaled", "high"),
+    layout: "full",
+    featured: false,
+    caseStudy: {
+      challenge: "Dar forma a una propuesta clara y con impacto visual.",
+      strategy: "Dirección de arte y desarrollo de la propuesta.",
+      services: ["Dirección de arte", "Diseño"],
+      blocks: [localGallery("megaled-hbo", 7, "Propuesta Megaled")],
+      credits: [{ role: "Diseño", name: "gular" }],
     },
   },
 ];

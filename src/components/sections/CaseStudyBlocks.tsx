@@ -47,14 +47,31 @@ function renderBlock(block: CaseStudyBlock) {
       );
 
     case "gallery":
+      // Masonry (respeta el alto natural de cada pieza) con carga diferida:
+      // sirve para muchas imágenes sin trabar ni recortar placas apaisadas.
       return (
         <Container>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {block.items.map((item, i) => (
-              <div key={i} className="aspect-[3/4] overflow-hidden">
-                <MediaFrame media={item} />
-              </div>
-            ))}
+          <div className="columns-1 gap-6 md:columns-2 [&>*]:mb-6">
+            {block.items.map((item, i) =>
+              item.kind === "image" && item.src ? (
+                // eslint-disable-next-line @next/next/no-img-element -- imagen local; se optimiza en build/CDN
+                <img
+                  key={i}
+                  src={item.src}
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full break-inside-avoid border border-border"
+                />
+              ) : (
+                <div
+                  key={i}
+                  className="aspect-video overflow-hidden break-inside-avoid"
+                >
+                  <MediaFrame media={item} />
+                </div>
+              ),
+            )}
           </div>
         </Container>
       );
