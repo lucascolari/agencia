@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, type Variants } from "motion/react";
 import { Container } from "@/components/ui/Container";
 import { Hero3D } from "@/components/3d/Hero3D";
-import { MediaFrame } from "@/components/media/MediaFrame";
+import { HeroVideoShader } from "@/components/3d/HeroVideoShader";
 import { useLocalTime } from "@/hooks/useLocalTime";
 import type { HomeContent } from "@/types/content";
 
@@ -36,9 +36,9 @@ export function HomeHero({
     <section className="relative flex min-h-[100svh] flex-col justify-between overflow-hidden pb-10 pt-32">
       {hasVideo ? (
         <>
-          {/* Video de fondo fullscreen (Mux). */}
+          {/* Video de fondo fullscreen: reel de Mux en shader WebGL (con fallback). */}
           <div aria-hidden className="absolute inset-0 -z-20">
-            <MediaFrame media={content.video!} sizes="100vw" />
+            <HeroVideoShader media={content.video!} />
           </div>
           {/* Overlay para legibilidad del texto sobre el video. */}
           <div
