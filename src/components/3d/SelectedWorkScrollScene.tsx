@@ -21,12 +21,6 @@ function coverUrl(p: Project): string {
   return "";
 }
 
-// Pseudoaleatorio determinista (0..1) a partir de una semilla: scatter estable.
-function rand(seed: number): number {
-  const s = Math.sin(seed * 127.1) * 43758.5453;
-  return s - Math.floor(s);
-}
-
 function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
   const projects = getProjects();
   const textures = useTexture(projects.map(coverUrl));
@@ -41,8 +35,7 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
     const p = progressRef.current ?? 0;
     // La cámara vuela hacia adentro: las portadas vienen hacia el visitante.
     state.camera.position.z = THREE.MathUtils.lerp(startZ, endZ, p);
-    state.camera.position.x = Math.sin(p * Math.PI * 3) * 0.6;
-    state.camera.position.y = Math.cos(p * Math.PI * 2) * 0.4;
+    state.camera.position.x = Math.sin(p * Math.PI * 2) * 0.4;
     state.camera.lookAt(0, 0, state.camera.position.z - 6);
 
     // Flotación sutil de cada portada.
@@ -55,14 +48,15 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
   return (
     <group ref={group}>
       {projects.map((p, i) => {
-        // Desparramadas por toda la pantalla (no en fila): X e Y dispersos.
-        const x = (rand(i * 2 + 1) - 0.5) * 8;
-        const baseY = (rand(i * 2 + 2) - 0.5) * 5;
+        // Carrusel que fluye: onda suave a los lados + leve subibaja, todas
+        // cerca del centro para que siempre se vean bien.
+        const x = Math.sin(i * 0.8) * 2.4;
+        const baseY = Math.sin(i * 1.4 + 0.5) * 0.7;
         return (
           <mesh
             key={p.slug}
             position={[x, baseY, -i * DEPTH]}
-            rotation={[0, -x * 0.1, 0]}
+            rotation={[0, -x * 0.14, 0]}
             userData={{ baseY }}
             onClick={(e) => {
               e.stopPropagation();
