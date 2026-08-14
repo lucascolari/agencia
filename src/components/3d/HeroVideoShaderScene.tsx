@@ -37,16 +37,17 @@ const FRAG = /* glsl */ `
   void main() {
     vec2 uv = coverUv(vUv);
     float d = distance(vUv, uMouse);
-    float falloff = smoothstep(0.75, 0.0, d);
+    // Efecto concentrado cerca del cursor (no deforma todo el video).
+    float falloff = smoothstep(0.45, 0.0, d);
 
-    // Ondulación hacia el puntero + latido idle.
+    // Ondulación sutil hacia el puntero + latido idle apenas perceptible.
     vec2 dir = normalize(vUv - uMouse + 0.0001);
-    float ripple = sin(d * 14.0 - uTime * 2.4) * 0.018 * falloff * uHover;
-    float idle = sin(uTime * 0.6 + vUv.y * 6.0) * 0.0015;
+    float ripple = sin(d * 14.0 - uTime * 2.2) * 0.008 * falloff * uHover;
+    float idle = sin(uTime * 0.5 + vUv.y * 6.0) * 0.0007;
     uv += dir * ripple + vec2(idle, 0.0);
 
-    // RGB-split proporcional a la cercanía del puntero.
-    float split = 0.02 * falloff * uHover;
+    // RGB-split leve, solo cerca del puntero.
+    float split = 0.008 * falloff * uHover;
     float r = texture2D(uTexture, uv + dir * split).r;
     float g = texture2D(uTexture, uv).g;
     float b = texture2D(uTexture, uv - dir * split).b;
