@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Cursor custom de desktop. Un punto que sigue al puntero con leve retardo y se
- * agranda sobre elementos interactivos. No se monta en dispositivos táctiles ni
- * con reduced-motion; en esos casos queda el cursor nativo del sistema.
+ * Cursor fluido de desktop: un punto que sigue rápido + un anillo que lo
+ * persigue con retardo (estela elástica). Sobre elementos interactivos el anillo
+ * crece y se tiñe de acento. No se monta en táctiles ni con reduced-motion.
  */
 export function CustomCursor() {
   const dot = useRef<HTMLDivElement>(null);
+  const ring = useRef<HTMLDivElement>(null);
   const [enabled, setEnabled] = useState(false);
   const [hovering, setHovering] = useState(false);
 
@@ -23,9 +24,9 @@ export function CustomCursor() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(true);
 
-    // Arranca fuera de pantalla: no mostramos el punto hasta el primer movimiento.
-    const pos = { x: -100, y: -100 };
-    const target = { ...pos };
+    const target = { x: -100, y: -100 };
+    const dotPos = { x: -100, y: -100 };
+    const ringPos = { x: -100, y: -100 };
     let raf = 0;
 
     const onMove = (e: PointerEvent) => {
@@ -38,10 +39,15 @@ export function CustomCursor() {
     };
 
     const loop = () => {
-      pos.x += (target.x - pos.x) * 0.2;
-      pos.y += (target.y - pos.y) * 0.2;
+      dotPos.x += (target.x - dotPos.x) * 0.35;
+      dotPos.y += (target.y - dotPos.y) * 0.35;
+      ringPos.x += (target.x - ringPos.x) * 0.14;
+      ringPos.y += (target.y - ringPos.y) * 0.14;
       if (dot.current) {
-        dot.current.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`;
+        dot.current.style.transform = `translate3d(${dotPos.x}px, ${dotPos.y}px, 0) translate(-50%, -50%)`;
+      }
+      if (ring.current) {
+        ring.current.style.transform = `translate3d(${ringPos.x}px, ${ringPos.y}px, 0) translate(-50%, -50%)`;
       }
       raf = requestAnimationFrame(loop);
     };
@@ -60,13 +66,22 @@ export function CustomCursor() {
   if (!enabled) return null;
 
   return (
-    <div
-      ref={dot}
-      aria-hidden
-      className={cn(
-        "pointer-events-none fixed left-0 top-0 z-[var(--z-cursor)] rounded-full mix-blend-difference transition-[width,height] duration-[var(--duration-fast)]",
-        hovering ? "h-12 w-12 bg-accent" : "h-3 w-3 bg-primary",
-      )}
-    />
+    <>
+      <div
+        ref={ring}
+        aria-hidden
+        className={cn(
+          "pointer-events-none fixed left-0 top-0 z-[var(--z-cursor)] rounded-full border mix-blend-difference transition-[width,height,border-color,background-color] duration-300",
+          hovering
+            ? "h-14 w-14 border-accent bg-accent/10"
+            : "h-8 w-8 border-primary/60",
+        )}
+      />
+      <div
+        ref={dot}
+        aria-hidden
+        className="pointer-events-none fixed left-0 top-0 z-[var(--z-cursor)] h-1.5 w-1.5 rounded-full bg-primary mix-blend-difference"
+      />
+    </>
   );
 }
