@@ -10,8 +10,8 @@ import { getProjects } from "@/lib/content/projects";
 import type { Project } from "@/types/content";
 
 const DEPTH = 7;
-const VIEW_DIST = 3.6; // distancia a la que la cámara se para frente a cada portada
-const PLANE_W = 3;
+const VIEW_DIST = 5.5; // distancia a la que la cámara se para frente a cada portada
+const PLANE_W = 2.6;
 const PLANE_H = (PLANE_W * 9) / 16;
 
 function coverUrl(p: Project): string {
