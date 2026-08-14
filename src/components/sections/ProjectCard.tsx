@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { MediaFrame } from "@/components/media/MediaFrame";
 import { CATEGORY_LABELS } from "@/lib/content/projects";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,10 @@ export function ProjectCard({
       href={`/work/${project.slug}`}
       className={cn("group block", className)}
     >
-      <div className={cn("relative overflow-hidden", ASPECT[project.layout])}>
+      <div
+        className={cn("relative overflow-hidden", ASPECT[project.layout])}
+        style={{ viewTransitionName: `cover-${project.slug}` }}
+      >
         <div className="h-full w-full transition-transform duration-[var(--duration-slow)] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]">
           <MediaFrame media={project.cover} />
         </div>

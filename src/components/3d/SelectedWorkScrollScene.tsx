@@ -3,7 +3,7 @@
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import * as THREE from "three";
 import { useMemo } from "react";
 import { getProjects } from "@/lib/content/projects";
@@ -25,7 +25,7 @@ function coverUrl(p: Project): string {
 function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
   const projects = getProjects();
   const textures = useTexture(projects.map(coverUrl));
-  const router = useRouter();
+  const router = useTransitionRouter();
   const group = useRef<THREE.Group>(null);
 
   const total = projects.length;

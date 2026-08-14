@@ -1,4 +1,26 @@
 import "@testing-library/jest-dom/vitest";
+import React from "react";
+import { vi } from "vitest";
+
+// next-view-transitions importa next/link, que Vitest no resuelve desde
+// node_modules. En tests lo mockeamos con un <a> simple y un router noop.
+vi.mock("next-view-transitions", () => ({
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string | { toString(): string };
+    children: React.ReactNode;
+  }) =>
+    React.createElement(
+      "a",
+      { href: typeof href === "string" ? href : String(href), ...props },
+      children,
+    ),
+  useTransitionRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  ViewTransitions: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 // jsdom no implementa IntersectionObserver; Framer Motion whileInView lo usa.
 // El stub reporta el elemento como visible al observar, para que los reveals

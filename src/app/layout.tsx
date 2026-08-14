@@ -7,6 +7,7 @@ import { Loader } from "@/components/ui/Loader";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
+import { ViewTransitions } from "next-view-transitions";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import { SpaceBackground } from "@/components/3d/SpaceBackground";
 import { ConsentBanner } from "@/features/consent/ConsentBanner";
@@ -54,8 +55,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${archivo.variable} ${inter.variable}`}>
-      <body>
+    <ViewTransitions>
+      <html lang="es" className={`${archivo.variable} ${inter.variable}`}>
+        <body>
         <a
           href="#contenido"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-modal)] focus:bg-accent focus:px-4 focus:py-2 focus:text-inverse"
@@ -74,7 +76,8 @@ export default function RootLayout({
           <Footer />
         </SmoothScrollProvider>
         <ConsentBanner />
-      </body>
-    </html>
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

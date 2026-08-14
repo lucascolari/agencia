@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { notFound } from "next/navigation";
 import { siteConfig, siteUrl } from "@/config/site";
 import { Container } from "@/components/ui/Container";
@@ -80,7 +80,10 @@ export default async function CaseStudyPage({
         </p>
       </Container>
 
-      <div className="mt-16 aspect-[16/9] w-full overflow-hidden">
+      <div
+        className="mt-16 aspect-[16/9] w-full overflow-hidden"
+        style={{ viewTransitionName: `cover-${project.slug}` }}
+      >
         <MediaFrame media={project.cover} />
       </div>
 

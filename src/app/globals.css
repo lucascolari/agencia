@@ -49,6 +49,32 @@ body {
   outline-offset: 3px;
 }
 
+/* Transiciones entre páginas (View Transitions API). El morphing de las
+   portadas [view-transition-name: cover-<slug>] entre la grilla y el hero del
+   case study es automático; acá se define el cross-fade de la página y el
+   easing del morph. Navegadores sin soporte navegan sin animación (fallback). */
+::view-transition-group(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1);
+}
+::view-transition-old(root) {
+  animation: vt-out 0.4s both cubic-bezier(0.83, 0, 0.17, 1);
+}
+::view-transition-new(root) {
+  animation: vt-in 0.55s both cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -57,5 +83,10 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
