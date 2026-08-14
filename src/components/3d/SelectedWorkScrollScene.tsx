@@ -12,7 +12,6 @@ import type { Project } from "@/types/content";
 const DEPTH = 7;
 const VIEW_DIST = 5.5; // distancia a la que la cámara se para frente a cada portada
 const PLANE_W = 2.6;
-const PLANE_H = (PLANE_W * 9) / 16;
 
 function coverUrl(p: Project): string {
   const c = p.cover;
@@ -68,6 +67,11 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
     <group ref={group}>
       {projects.map((p, i) => {
         const { x, y: baseY } = positions[i];
+        // Ancho fijo; alto según el formato real de cada imagen (sin estirar).
+        const img = textures[i].image as { width?: number; height?: number };
+        const ratio = img?.width && img?.height ? img.width / img.height : 16 / 9;
+        const w = PLANE_W;
+        const h = w / ratio;
         return (
           <mesh
             key={p.slug}
@@ -84,7 +88,7 @@ function Corridor({ progressRef }: { progressRef: React.RefObject<number> }) {
               document.body.style.cursor = "";
             }}
           >
-            <planeGeometry args={[PLANE_W, PLANE_H]} />
+            <planeGeometry args={[w, h]} />
             <meshBasicMaterial map={textures[i]} toneMapped={false} />
           </mesh>
         );
