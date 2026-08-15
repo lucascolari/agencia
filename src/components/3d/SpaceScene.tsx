@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { getAudioBands } from "@/lib/audio/audioReactive";
+import { getScrollSignals, stepWarp } from "@/lib/motion/scrollSignals";
 
 /**
  * Campo de estrellas de fondo. Deriva muy lento y hace parallax sutil hacia el
@@ -31,10 +32,20 @@ function Field({ reduced, lite }: { reduced: boolean; lite: boolean }) {
     // acelera con el nivel general y late (escala) con los graves. Sin audio,
     // level/bass son 0 y queda el movimiento de siempre.
     const { level, bass } = getAudioBands();
-    group.current.rotation.y += 0.0003 * (1 + level * 6);
+
+    // Mundo reactivo (B3) + warp entre páginas (A1). `velocity`/`warp` son función
+    // pura de su señal actual, así que el campo siempre vuelve a su lugar solo.
+    stepWarp();
+    const { velocity, warp } = getScrollSignals();
+
+    group.current.rotation.y +=
+      0.0003 * (1 + level * 6 + velocity * 4 + warp * 20);
     group.current.rotation.x = pointer.current.y * 0.12;
     group.current.rotation.z = pointer.current.x * 0.08;
-    const pulse = 1 + bass * 0.14;
+    // Al scrollear rápido —y sobre todo en el warp— el campo se acerca a la
+    // cámara: las estrellas pasan de largo y se siente el "salto espacial".
+    group.current.position.z = velocity * 6 + warp * 34;
+    const pulse = 1 + bass * 0.14 + warp * 0.25;
     group.current.scale.setScalar(pulse);
   });
 
