@@ -5,6 +5,7 @@ import { siteConfig, siteUrl } from "@/config/site";
 import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
 import { Loader } from "@/components/ui/Loader";
 import { CustomCursor } from "@/components/ui/CustomCursor";
+import { AudioToggle } from "@/components/ui/AudioToggle";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 import { ViewTransitions } from "next-view-transitions";
@@ -75,6 +76,7 @@ export default function RootLayout({
           </main>
           <Footer />
         </SmoothScrollProvider>
+        <AudioToggle />
         <ConsentBanner />
         </body>
       </html>

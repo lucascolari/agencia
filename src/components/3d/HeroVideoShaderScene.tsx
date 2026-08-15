@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import Hls from "hls.js";
+import { getAudioBands, setAudioSource } from "@/lib/audio/audioReactive";
 
 const VERT = /* glsl */ `
   varying vec2 vUv;
@@ -22,6 +23,7 @@ const FRAG = /* glsl */ `
   uniform float uPlaneAspect;
   uniform float uVideoAspect;
   uniform float uHover;
+  uniform float uAudio;
 
   // UV "cover": llena el plano sin deformar el video.
   vec2 coverUv(vec2 uv) {
@@ -40,14 +42,19 @@ const FRAG = /* glsl */ `
     // Efecto concentrado cerca del cursor (no deforma todo el video).
     float falloff = smoothstep(0.45, 0.0, d);
 
+    // Con el sonido activo el reel "late" con la música (uAudio 0..1).
+    float beat = uAudio;
+
     // Ondulación sutil hacia el puntero + latido idle apenas perceptible.
     vec2 dir = normalize(vUv - uMouse + 0.0001);
     float ripple = sin(d * 14.0 - uTime * 2.2) * 0.008 * falloff * uHover;
+    // Onda que recorre todo el plano al ritmo del audio (independiente del mouse).
+    float pulse = sin(vUv.y * 10.0 - uTime * 4.0) * 0.01 * beat;
     float idle = sin(uTime * 0.5 + vUv.y * 6.0) * 0.0007;
-    uv += dir * ripple + vec2(idle, 0.0);
+    uv += dir * ripple + vec2(idle + pulse, pulse * 0.5);
 
-    // RGB-split leve, solo cerca del puntero.
-    float split = 0.008 * falloff * uHover;
+    // RGB-split leve, cerca del puntero y reforzado por el ritmo.
+    float split = (0.008 * falloff * uHover) + 0.006 * beat;
     float r = texture2D(uTexture, uv + dir * split).r;
     float g = texture2D(uTexture, uv).g;
     float b = texture2D(uTexture, uv - dir * split).b;
@@ -90,10 +97,14 @@ function useMuxTexture(playbackId: string) {
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texRef.current = texture;
+    // Queda disponible para el botón "activar sonido": el reel es la fuente de
+    // audio de toda la web. Sigue muteado hasta que el usuario lo active.
+    setAudioSource(video);
     void video.play().catch(() => {});
 
     return () => {
       video.removeEventListener("loadedmetadata", onMeta);
+      setAudioSource(null);
       hls?.destroy();
       video.pause();
       video.removeAttribute("src");
@@ -141,6 +152,7 @@ function VideoPlane({
       uPlaneAspect: { value: 1 },
       uVideoAspect: { value: 16 / 9 },
       uHover: { value: 0 },
+      uAudio: { value: 0 },
     }),
     [],
   );
@@ -156,6 +168,8 @@ function VideoPlane({
     u.uMouse.value.copy(mouse.current);
     hover.current += ((reduced ? 0 : 1) - hover.current) * 0.05;
     u.uHover.value = hover.current;
+    // Latido al ritmo del reel cuando el usuario activó el sonido.
+    u.uAudio.value = getAudioBands().level;
   });
 
   return (
