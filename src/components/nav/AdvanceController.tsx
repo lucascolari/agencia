@@ -56,7 +56,7 @@ export function AdvanceController() {
   const affordRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const arcRef = useRef<SVGCircleElement>(null);
-  const flashRef = useRef<HTMLDivElement>(null);
+  const veilRef = useRef<HTMLDivElement>(null);
 
   // Estado mutable que comparten el loop y los handlers (sin re-render).
   const st = useRef({ intent: 0, dir: null as Dir | null, navigating: false });
@@ -183,10 +183,11 @@ export function AdvanceController() {
         }
       }
 
-      // Flash del salto espacial (A1).
-      if (flashRef.current) {
+      // Túnel de vacío del salto espacial (A1): la viñeta se cierra hacia el
+      // centro mientras las estrellas se estiran. Nada de flash.
+      if (veilRef.current) {
         const w = getScrollSignals().warp;
-        flashRef.current.style.opacity = String(Math.min(w * 1.1, 1) * 0.92);
+        veilRef.current.style.opacity = String(Math.min(w * 1.15, 1));
       }
 
       raf = requestAnimationFrame(loop);
@@ -204,15 +205,17 @@ export function AdvanceController() {
 
   return (
     <>
-      {/* Flash del salto espacial entre páginas (A1). */}
+      {/* Túnel de vacío del salto espacial entre páginas (A1): viñeta profunda
+          que se cierra hacia el centro, dejando ver el estirado de estrellas.
+          Reemplaza al flash blanco por algo más "espacial". */}
       <div
-        ref={flashRef}
+        ref={veilRef}
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[var(--z-overlay)]"
         style={{
           opacity: 0,
           background:
-            "radial-gradient(120% 120% at 50% 50%, rgba(228,255,63,0.10) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0.98) 100%)",
+            "radial-gradient(100% 100% at 50% 50%, rgba(5,6,13,0) 30%, rgba(5,6,13,0.7) 68%, rgba(3,4,10,0.98) 100%)",
         }}
       />
       {/* Indicador de avance. Decorativo (la navegación real vive en el header). */}

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { reportScrollVelocity } from "@/lib/motion/scrollSignals";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,6 +22,8 @@ export function SmoothScrollProvider({
     let rafId = 0;
     const raf = (time: number) => {
       lenis.raf(time);
+      // Estira/acelera el campo de estrellas según la velocidad de scroll.
+      reportScrollVelocity(lenis.velocity);
       rafId = requestAnimationFrame(raf);
     };
     rafId = requestAnimationFrame(raf);
