@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useDeviceCapability } from "@/hooks/useDeviceCapability";
+
+const LoaderScene = dynamic(() => import("@/components/3d/LoaderScene"), {
+  ssr: false,
+});
 
 type Phase = "checking" | "showing" | "done";
 
@@ -15,6 +21,7 @@ type Phase = "checking" | "showing" | "done";
 export function Loader({ brand }: { brand: string }) {
   const [phase, setPhase] = useState<Phase>("checking");
   const reduced = useReducedMotion();
+  const cap = useDeviceCapability();
 
   useEffect(() => {
     // Decisión solo-cliente (sessionStorage) de mostrar el loader una vez.
@@ -33,7 +40,7 @@ export function Loader({ brand }: { brand: string }) {
         setPhase("done");
         sessionStorage.setItem("loader-seen", "1");
       },
-      reduced ? 300 : 1500,
+      reduced ? 300 : 1900,
     );
     return () => window.clearTimeout(timeout);
   }, []);
@@ -48,15 +55,25 @@ export function Loader({ brand }: { brand: string }) {
           exit={{ opacity: 0 }}
           transition={{ duration: reduced ? 0 : 0.7, ease: [0.83, 0, 0.17, 1] }}
         >
-          <div className="overflow-hidden">
-            <motion.span
-              className="block font-display text-4xl font-semibold tracking-[0.12em] text-text md:text-6xl"
-              initial={{ y: reduced ? "0%" : "120%" }}
-              animate={{ y: "0%" }}
-              transition={{ duration: reduced ? 0 : 0.9, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {brand}
-            </motion.span>
+          <div className="flex flex-col items-center gap-6">
+            {cap.allow3D && (
+              <div className="h-28 w-28 md:h-36 md:w-36">
+                <LoaderScene />
+              </div>
+            )}
+            <div className="overflow-hidden">
+              <motion.span
+                className="block font-display text-4xl font-semibold tracking-[0.12em] text-text md:text-6xl"
+                initial={{ y: reduced ? "0%" : "120%" }}
+                animate={{ y: "0%" }}
+                transition={{
+                  duration: reduced ? 0 : 0.9,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+              >
+                {brand}
+              </motion.span>
+            </div>
           </div>
           <motion.span
             className="absolute bottom-10 left-1/2 h-px bg-accent"
