@@ -1,39 +1,22 @@
 /**
- * Señales de movimiento compartidas (singleton de módulo), en el mismo espíritu
- * que `audioReactive`: valores que las escenas 3D y los overlays leen cada frame
- * SIN provocar renders de React.
+ * Señal de warp compartida (singleton de módulo), en el mismo espíritu que
+ * `audioReactive`: un valor que la escena espacial lee cada frame SIN provocar
+ * renders de React.
  *
- * - `velocity` (0..1): qué tan rápido se está scrolleando ahora. Lo alimenta el
- *   provider de scroll (Lenis). Hace que el mundo reaccione a la velocidad (B3):
- *   las estrellas se estiran y el contenido tiene un leve motion-blur.
  * - `warp` (0..1): salto a velocidad-luz entre páginas (A1). El controlador de
  *   avance lo dispara; la escena espacial atraviesa el campo de estrellas y un
  *   flash cubre el cambio de página.
  */
 
-type Signals = { velocity: number; warp: number };
+type Signals = { warp: number };
 
-const signals: Signals = { velocity: 0, warp: 0 };
-
-// Velocidad cruda máxima esperada (px/frame aprox.) para normalizar a 0..1.
-const MAX_VELOCITY = 60;
+const signals: Signals = { warp: 0 };
 
 let warpTarget = 0;
 const warpListeners = new Set<(warping: boolean) => void>();
 
 export function getScrollSignals(): Signals {
   return signals;
-}
-
-/**
- * Reporta la velocidad instantánea de scroll (px/frame). Se normaliza y se
- * suaviza para que las escenas la consuman sin saltos.
- */
-export function reportScrollVelocity(pxPerFrame: number): void {
-  const v = Math.min(Math.abs(pxPerFrame) / MAX_VELOCITY, 1);
-  // Sube rápido, baja suave: se siente la aceleración y el frenado es elegante.
-  const k = v > signals.velocity ? 0.4 : 0.08;
-  signals.velocity += (v - signals.velocity) * k;
 }
 
 /** Avanza la interpolación del warp hacia su objetivo. Llamar cada frame. */

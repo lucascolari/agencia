@@ -3,8 +3,6 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
-import { useReducedMotion } from "motion/react";
-import { useDeviceCapability } from "@/hooks/useDeviceCapability";
 import { getNext, getPrev, isInJourney, type JourneyStop } from "@/config/journey";
 import {
   addIntent,
@@ -19,7 +17,6 @@ type Dir = "next" | "prev";
 const RING_R = 12;
 const RING_C = 2 * Math.PI * RING_R;
 const SWIPE_MIN = 60; // px de swipe para confirmar en mobile
-const MAX_BLUR = 2.6; // px de motion-blur máximo del contenido
 
 function isEditableTarget(el: EventTarget | null): boolean {
   const node = el as HTMLElement | null;
@@ -47,28 +44,22 @@ function atTop(): boolean {
  * Controlador de avance: convierte los bordes de cada página en un "viaje"
  * fluido por el recorrido del sitio (orden del menú). En el borde, una intención
  * clara —empujar la rueda (C3), flecha/espacio (C1) o swipe (C2)— dispara el
- * salto espacial (warp) hacia la página siguiente/anterior. Además pinta el
- * motion-blur del contenido según la velocidad de scroll (B3).
+ * salto espacial (warp) hacia la página siguiente/anterior.
  *
  * No secuestra el scroll intermedio: solo actúa exactamente en los bordes, y
- * respeta reduced-motion (navega con la transición suave, sin warp ni blur).
+ * respeta reduced-motion (navega con la transición suave, sin warp).
  */
 export function AdvanceController() {
   const pathname = usePathname();
   const router = useTransitionRouter();
-  const reduced = useReducedMotion();
-  const cap = useDeviceCapability();
 
   const affordRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const arcRef = useRef<SVGCircleElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
-  const blurRef = useRef<HTMLDivElement>(null);
 
   // Estado mutable que comparten el loop y los handlers (sin re-render).
   const st = useRef({ intent: 0, dir: null as Dir | null, navigating: false });
-
-  const blurEnabled = cap.ready && !reduced && !cap.lowEnd;
 
   useEffect(() => {
     // En páginas fuera del recorrido (legales), nada de avance automático.
@@ -146,7 +137,6 @@ export function AdvanceController() {
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
 
-    const blurNode = blurRef.current;
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
@@ -199,16 +189,6 @@ export function AdvanceController() {
         flashRef.current.style.opacity = String(Math.min(w * 1.1, 1) * 0.92);
       }
 
-      // Motion-blur del contenido según velocidad (B3).
-      if (blurRef.current && blurEnabled) {
-        const v = getScrollSignals().velocity;
-        const px = v > 0.12 ? Math.min(v, 1) * MAX_BLUR : 0;
-        const filter = px > 0.01 ? `blur(${px.toFixed(2)}px)` : "none";
-        blurRef.current.style.backdropFilter = filter;
-        (blurRef.current.style as unknown as { webkitBackdropFilter: string })
-          .webkitBackdropFilter = filter;
-      }
-
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -219,20 +199,11 @@ export function AdvanceController() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
-      if (blurNode) {
-        blurNode.style.backdropFilter = "none";
-      }
     };
-  }, [pathname, router, blurEnabled]);
+  }, [pathname, router]);
 
   return (
     <>
-      {/* Motion-blur del contenido al scrollear rápido (B3). Debajo del header. */}
-      <div
-        ref={blurRef}
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[20]"
-      />
       {/* Flash del salto espacial entre páginas (A1). */}
       <div
         ref={flashRef}

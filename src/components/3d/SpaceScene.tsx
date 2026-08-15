@@ -33,18 +33,17 @@ function Field({ reduced, lite }: { reduced: boolean; lite: boolean }) {
     // level/bass son 0 y queda el movimiento de siempre.
     const { level, bass } = getAudioBands();
 
-    // Mundo reactivo (B3) + warp entre páginas (A1). `velocity`/`warp` son función
-    // pura de su señal actual, así que el campo siempre vuelve a su lugar solo.
+    // Warp entre páginas (A1). Es función pura de su señal actual, así que el
+    // campo siempre vuelve solo a su lugar cuando el salto termina.
     stepWarp();
-    const { velocity, warp } = getScrollSignals();
+    const { warp } = getScrollSignals();
 
-    group.current.rotation.y +=
-      0.0003 * (1 + level * 6 + velocity * 4 + warp * 20);
+    group.current.rotation.y += 0.0003 * (1 + level * 6 + warp * 20);
     group.current.rotation.x = pointer.current.y * 0.12;
     group.current.rotation.z = pointer.current.x * 0.08;
-    // Al scrollear rápido —y sobre todo en el warp— el campo se acerca a la
-    // cámara: las estrellas pasan de largo y se siente el "salto espacial".
-    group.current.position.z = velocity * 6 + warp * 34;
+    // En el warp el campo se acerca a la cámara: las estrellas pasan de largo y
+    // se siente el "salto espacial".
+    group.current.position.z = warp * 34;
     const pulse = 1 + bass * 0.14 + warp * 0.25;
     group.current.scale.setScalar(pulse);
   });
