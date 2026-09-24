@@ -9,7 +9,10 @@ export function Header() {
   const ui = getUiStrings(siteConfig.locale);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[var(--z-navigation)]">
+    <header
+      data-site-header
+      className="fixed inset-x-0 top-0 z-[var(--z-navigation)]"
+    >
       <Container className="flex h-20 items-center justify-between">
         <Link
           href="/"

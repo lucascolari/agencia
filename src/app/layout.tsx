@@ -3,15 +3,11 @@ import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
 import { siteConfig, siteUrl } from "@/config/site";
 import { SmoothScrollProvider } from "@/providers/SmoothScrollProvider";
-import { Loader } from "@/components/ui/Loader";
 import { CustomCursor } from "@/components/ui/CustomCursor";
-import { AudioToggle } from "@/components/ui/AudioToggle";
-import { AdvanceController } from "@/components/nav/AdvanceController";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/navigation/Footer";
 import { ViewTransitions } from "next-view-transitions";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
-import { SpaceBackground } from "@/components/3d/SpaceBackground";
 import { ConsentBanner } from "@/features/consent/ConsentBanner";
 
 const archivo = Archivo({
@@ -67,8 +63,6 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         <OrganizationJsonLd />
-        <SpaceBackground />
-        <Loader brand={siteConfig.name} />
         <CustomCursor />
         <SmoothScrollProvider>
           <Header />
@@ -77,8 +71,6 @@ export default function RootLayout({
           </main>
           <Footer />
         </SmoothScrollProvider>
-        <AudioToggle />
-        <AdvanceController />
         <ConsentBanner />
         </body>
       </html>

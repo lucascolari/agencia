@@ -1,6 +1,6 @@
 import { siteConfig } from "@/config/site";
 import { getUiStrings } from "@/lib/content/ui";
-import { HomeHero } from "@/components/sections/HomeHero";
+import { GularIntro } from "@/components/intro/GularIntro";
 import { HomeStatement } from "@/components/sections/HomeStatement";
 import { SelectedWorkScroll } from "@/components/3d/SelectedWorkScroll";
 import { HomeCapabilities } from "@/components/sections/HomeCapabilities";
@@ -12,7 +12,9 @@ export default function HomePage() {
 
   return (
     <>
-      <HomeHero content={home.hero} location={siteConfig.location} />
+      {/* Primera pantalla: intro ceremonial + manifiesto (spec del diseñador). */}
+      <GularIntro />
+      {/* El resto del sitio sigue con los videos y fotos actuales. */}
       <HomeStatement content={home.statement} />
       <SelectedWorkScroll content={home.selectedWork} />
       <HomeCapabilities content={home.capabilities} />
