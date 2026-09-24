@@ -91,13 +91,25 @@ body {
   }
 }
 
-/* Durante la ceremonia de intro (Fichas 00–02) la pantalla arranca vacía: el
-   header aparece recién cuando la primera pantalla queda constituida. */
-html[data-intro="ceremony"] [data-site-header],
-html[data-intro="manifesto"] [data-site-header] {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+/* En la home, la navegación son las esquinas de marca (logo + iso), no el header
+   clásico: se oculta el header mientras la intro está montada. */
+html[data-intro] [data-site-header] {
+  display: none;
+}
+
+/* Iso del menú: rotación vertical continua sobre su eje Y (1 vuelta / 8 s,
+   lineal, sin rebote), como pide la Ficha 01. */
+@keyframes iso-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+.iso-spin {
+  animation: iso-spin 8s linear infinite;
+  transform-style: preserve-3d;
 }
 
 @media (prefers-reduced-motion: reduce) {

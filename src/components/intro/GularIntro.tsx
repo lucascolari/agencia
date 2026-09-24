@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Link } from "next-view-transitions";
+import { AnimatePresence, motion } from "motion/react";
 import {
-  alphaChannel,
-  buildField,
-  lerp,
-  makeRng,
-  samplePointsFromAlpha,
-  type FieldPt,
-  type Pt,
-} from "@/lib/intro/particles";
-import {
-  markIntroSeen,
   introSeenThisSession,
+  markIntroSeen,
   setIntroPhase,
   type IntroPhase,
 } from "@/lib/intro/introState";
@@ -20,52 +13,72 @@ import { introText } from "@/lib/content/manifesto";
 import { Manifesto, manifestoTypingDuration } from "./Manifesto";
 
 /**
- * Primera pantalla de Gular (Fichas 00–02 del diseñador), reconstruida con SVG +
- * partículas en un canvas 2D (opción permitida por el doc). Secuencia:
+ * Primera pantalla de Gular (Fichas 00–02 del diseñador).
  *
- *   negro → la "g" se forma de materia en movimiento → "No hay solución" →
- *   "SINGULAR" → vuelve a la "g" → se fragmenta en el campo espacial →
- *   se escribe el manifiesto.
+ * Todo se dibuja con los SVG originales, NÍTIDOS (no reconstruido por partículas,
+ * como exige el doc). Secuencia sobre negro absoluto:
+ *   "g" → "No hay solución" → "SINGULAR" → "g" → primera pantalla
+ *   (logo arriba-izq + iso rotando arriba-der + manifiesto escrito).
  *
- * Silenciosa, sin botón de saltar, scroll bloqueado hasta terminar, una sola vez
- * por sesión. Con reduced-motion o en visitas posteriores entra directo al
- * estado estable.
+ * Silenciosa, sin botón de saltar, sin mensajes de carga, scroll bloqueado hasta
+ * terminar, una vez por sesión. Con reduced-motion o en visitas posteriores entra
+ * directo al estado estable.
  *
- * PLACEHOLDERS (hasta que lleguen los assets del diseñador): la "g" usa el
- * isologo real como silueta; los textos y el manifiesto usan fuentes temporales;
- * la temporización sigue el mapa del doc pero debe contrastarse con gularintro.mp4.
+ * PENDIENTE de assets del diseñador para quedar EXACTO: la transformación
+ * "materia que se transforma" (COREC*.svg + gularintro.mp4), las tipografías
+ * oficiales (acá van temporales) y Slide 16_9-1.png para la composición fina.
  */
 
-// Línea temporal (ms), según el mapa de la Ficha 00.
-// Fases intermedias (forma la "g" ~0,5–2 s, vuelve a la "g" ~10,5–13,5 s) quedan
-// implícitas en los tramos de `targetFor`; acá solo los límites que se leen.
-const FADE_IN = 350;
-const HOLD_END = 4500;
-const T1_END = 7800; // "No hay solución"
-const T2_END = 10500; // "SINGULAR"
-const INTRO_END = 14000; // "g" final → empieza la fragmentación
-const MANIFESTO_START = INTRO_END + 400; // la escritura arranca a los 0,4 s
+type Step = "g1" | "frase" | "singular" | "g2" | "stable";
 
-const SEED = 20240924;
-const LERP_K = 0.07;
+// Marca temporal del recorrido (ms). Se afinará contra gularintro.mp4.
+const T_FRASE = 2200;
+const T_SINGULAR = 4600;
+const T_G2 = 7000;
+const T_STABLE = 8800;
 
-type Mode = "ceremony" | "ambient" | "frozen";
+const EASE = [0.83, 0, 0.17, 1] as const;
+const ISO_RATIO = 164 / 255; // ancho/alto del isologo
+const LOGO_RATIO = 286 / 137; // ancho/alto del logotipo
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
+/** Silueta SVG nítida vía CSS mask (escalable, recoloreable, sin rasterizar). */
+function SvgMark({
+  src,
+  className,
+  style,
+}: {
+  src: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={className}
+      style={{
+        display: "block",
+        backgroundColor: "#fff",
+        WebkitMaskImage: `url(${src})`,
+        maskImage: `url(${src})`,
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+        ...style,
+      }}
+    />
+  );
 }
 
 export function GularIntro() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [phase, setPhase] = useState<IntroPhase>("pending");
+  const [step, setStep] = useState<Step>("g1");
   const [animate, setAnimate] = useState(true);
+  const [phase, setPhase] = useState<IntroPhase>("pending");
+  const decided = useRef(false);
 
-  // Refleja la fase en <html data-intro> y en el estado global (para el header).
+  // Refleja la fase en <html data-intro> (el header se oculta en la home).
   useEffect(() => {
     document.documentElement.dataset.intro = phase;
     setIntroPhase(phase);
@@ -74,7 +87,7 @@ export function GularIntro() {
     };
   }, [phase]);
 
-  // Bloqueo de scroll durante la ceremonia/escritura (Fichas 00–02).
+  // Bloqueo de scroll durante la ceremonia/escritura.
   useEffect(() => {
     const locked = animate && phase !== "done" && phase !== "pending";
     if (!locked) return;
@@ -106,328 +119,139 @@ export function GularIntro() {
     };
   }, [animate, phase]);
 
-  // Motor de partículas.
+  // Orquestación de la secuencia.
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (decided.current) return;
+    decided.current = true;
 
+    // Decisión solo-cliente (reduced-motion / visita ya vista): no puede correr
+    // en SSR y define el arranque de la secuencia. Excepción válida.
+    /* eslint-disable react-hooks/set-state-in-effect */
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const seen = introSeenThisSession();
-    const mode: Mode = reduced ? "frozen" : seen ? "ambient" : "ceremony";
 
-    const mobile =
-      window.matchMedia("(pointer: coarse)").matches ||
-      window.innerWidth < 768;
-    const P = mobile ? 720 : 1400;
+    if (reduced || seen) {
+      // Estado estable directo: sin ceremonia.
+      setAnimate(false);
+      setStep("stable");
+      setPhase("done");
+      return;
+    }
 
-    let cssW = window.innerWidth;
-    let cssH = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, mobile ? 2 : 2);
-
-    // Composición determinista.
-    const rng = makeRng(SEED);
-    const fieldNorm: FieldPt[] = buildField(P, rng);
-    const phases = new Float32Array(P);
-    for (let i = 0; i < P; i++) phases[i] = rng() * Math.PI * 2;
-
-    // Buffers de posición.
-    const cx = new Float32Array(P);
-    const cy = new Float32Array(P);
-    let gPts: Pt[] = [];
-    let t1Pts: Pt[] = [];
-    let t2Pts: Pt[] = [];
-    const fldX = new Float32Array(P);
-    const fldY = new Float32Array(P);
-
-    let isoImg: HTMLImageElement | null = null;
-    let raf = 0;
-    let start = 0;
-    let fieldMix = 0;
-    const pointer = { x: 0, y: 0 };
-
-    const sizeCanvas = () => {
-      cssW = window.innerWidth;
-      cssH = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, mobile ? 2 : 2);
-      canvas.width = Math.floor(cssW * dpr);
-      canvas.height = Math.floor(cssH * dpr);
-      canvas.style.width = `${cssW}px`;
-      canvas.style.height = `${cssH}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    // Muestra puntos de una silueta dibujada en un canvas offscreen.
-    const sampleDraw = (
-      w: number,
-      h: number,
-      draw: (c: CanvasRenderingContext2D, w: number, h: number) => void,
-    ): Pt[] => {
-      const off = document.createElement("canvas");
-      off.width = Math.max(1, Math.ceil(w));
-      off.height = Math.max(1, Math.ceil(h));
-      const octx = off.getContext("2d");
-      if (!octx) return [];
-      draw(octx, off.width, off.height);
-      const data = octx.getImageData(0, 0, off.width, off.height).data;
-      const alpha = alphaChannel(data, off.width * off.height);
-      const pts = samplePointsFromAlpha(alpha, off.width, off.height, P, rng);
-      const centerX = cssW / 2;
-      const centerY = cssH / 2;
-      return pts.map((p) => ({
-        x: centerX + (p.x - off.width / 2),
-        y: centerY + (p.y - off.height / 2),
-      }));
-    };
-
-    const shapeFromImage = (img: HTMLImageElement): Pt[] => {
-      const h = Math.min(cssH * 0.42, 340);
-      const w = h * (img.width / img.height);
-      return sampleDraw(w, h, (c, cw, ch) => c.drawImage(img, 0, 0, cw, ch));
-    };
-
-    const shapeFromText = (
-      text: string,
-      opts: { maxFont: number; weight: number; upper?: boolean },
-    ): Pt[] => {
-      const measure = document.createElement("canvas").getContext("2d")!;
-      let fontPx = Math.min(cssW * 0.09, opts.maxFont);
-      const setFont = () =>
-        (measure.font = `${opts.weight} ${fontPx}px Archivo, system-ui, sans-serif`);
-      setFont();
-      let m = measure.measureText(text);
-      const maxW = cssW * 0.84;
-      if (m.width > maxW) {
-        fontPx *= maxW / m.width;
-        setFont();
-        m = measure.measureText(text);
-      }
-      const pad = fontPx * 0.4;
-      const w = m.width + pad * 2;
-      const h = fontPx * 1.5;
-      return sampleDraw(w, h, (c, cw, ch) => {
-        c.fillStyle = "#fff";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.font = `${opts.weight} ${fontPx}px Archivo, system-ui, sans-serif`;
-        c.fillText(text, cw / 2, ch / 2);
-      });
-    };
-
-    const computeShapes = () => {
-      if (isoImg) {
-        gPts = shapeFromImage(isoImg);
-      } else {
-        gPts = shapeFromText("g", { maxFont: 320, weight: 600 });
-      }
-      t1Pts = shapeFromText(introText.frase, { maxFont: 88, weight: 500 });
-      t2Pts = shapeFromText(introText.singular, { maxFont: 150, weight: 700 });
-      for (let i = 0; i < P; i++) {
-        fldX[i] = cssW / 2 + fieldNorm[i].x * cssW * 0.98;
-        fldY[i] = cssH / 2 + fieldNorm[i].y * cssH * 0.98;
-      }
-    };
-
-    const initParticles = () => {
-      for (let i = 0; i < P; i++) {
-        if (mode === "ceremony") {
-          // Materia dispersa que luego converge al centro.
-          cx[i] = Math.random() * cssW;
-          cy[i] = Math.random() * cssH;
-        } else {
-          cx[i] = fldX[i];
-          cy[i] = fldY[i];
-        }
-      }
-    };
-
-    const targetFor = (e: number): { shape: Pt[] | null } => {
-      if (e < HOLD_END) return { shape: gPts };
-      if (e < T1_END) return { shape: t1Pts };
-      if (e < T2_END) return { shape: t2Pts };
-      if (e < INTRO_END) return { shape: gPts };
-      return { shape: null }; // campo
-    };
-
-    const drawParticle = (
-      i: number,
-      x: number,
-      y: number,
-      alphaRamp: number,
-    ) => {
-      const d = fieldNorm[i].depth;
-      // Estado "shape" (blanco nítido) vs campo (mayormente desenfocado).
-      let fA: number;
-      let fR: number;
-      let r: number;
-      let g: number;
-      let b: number;
-      const focused = d > 0.5 && d < 0.63;
-      if (focused) {
-        fA = 0.55;
-        fR = 1.3;
-        r = g = b = 235;
-      } else if (d < 0.4) {
-        fA = 0.16;
-        fR = 0.9 + d;
-        r = 150;
-        g = 160;
-        b = 220; // rastros de violeta/azul en el plano lejano
-      } else if (d > 0.85) {
-        fA = 0.07;
-        fR = 2.6 + (d - 0.85) * 10;
-        r = g = b = 210; // primer plano muy desenfocado
-      } else {
-        fA = 0.22;
-        fR = 1.0;
-        r = g = b = 200;
-      }
-      const R = lerp(1.6, fR, fieldMix);
-      const A = lerp(1, fA, fieldMix) * alphaRamp;
-      const cr = lerp(255, r, fieldMix) | 0;
-      const cg = lerp(255, g, fieldMix) | 0;
-      const cb = lerp(255, b, fieldMix) | 0;
-      ctx.globalAlpha = A;
-      ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
-      ctx.beginPath();
-      ctx.arc(x, y, R, 0, Math.PI * 2);
-      ctx.fill();
-    };
-
-    const render = (now: number) => {
-      const e = now - start;
-      const { shape } = targetFor(e);
-      const inField = shape === null;
-      fieldMix += ((inField ? 1 : 0) - fieldMix) * 0.05;
-      const alphaRamp = Math.min(e / FADE_IN, 1);
-
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, cssW, cssH);
-
-      const levit = Math.sin(now * 0.001) * 1.0;
-      for (let i = 0; i < P; i++) {
-        let tx: number;
-        let ty: number;
-        if (inField) {
-          const drift = 0.0003;
-          tx = fldX[i] + Math.sin(now * drift + phases[i]) * 8 * (0.3 + fieldNorm[i].depth);
-          ty = fldY[i] + Math.cos(now * drift + phases[i]) * 8 * (0.3 + fieldNorm[i].depth);
-        } else {
-          tx = shape[i]?.x ?? cssW / 2;
-          ty = shape[i]?.y ?? cssH / 2;
-        }
-        cx[i] += (tx - cx[i]) * LERP_K;
-        cy[i] += (ty - cy[i]) * LERP_K;
-        const px = cx[i] + pointer.x * 14 * fieldNorm[i].depth * fieldMix;
-        const py = cy[i] + (inField ? 0 : levit);
-        drawParticle(i, px, py, alphaRamp);
-      }
-      ctx.globalAlpha = 1;
-
-      raf = requestAnimationFrame(render);
-    };
-
-    const drawOnce = () => {
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, cssW, cssH);
-      fieldMix = 1;
-      for (let i = 0; i < P; i++) drawParticle(i, fldX[i], fldY[i], 1);
-      ctx.globalAlpha = 1;
-    };
-
-    const onPointer = (ev: PointerEvent) => {
-      pointer.x = (ev.clientX / cssW) * 2 - 1;
-      pointer.y = (ev.clientY / cssH) * 2 - 1;
-    };
-    const onResize = () => {
-      sizeCanvas();
-      computeShapes();
-    };
-
-    let cancelled = false;
     const timers: number[] = [];
-
-    const begin = () => {
-      if (cancelled) return;
-      sizeCanvas();
-      computeShapes();
-      initParticles();
-
-      window.addEventListener("resize", onResize);
-      window.addEventListener("pointermove", onPointer);
-
-      if (mode === "frozen") {
-        // reduced-motion: estado estable, sin animación.
-        drawOnce();
-        setAnimate(false);
+    setAnimate(true);
+    setStep("g1");
+    setPhase("ceremony");
+    timers.push(window.setTimeout(() => setStep("frase"), T_FRASE));
+    timers.push(window.setTimeout(() => setStep("singular"), T_SINGULAR));
+    timers.push(window.setTimeout(() => setStep("g2"), T_G2));
+    timers.push(
+      window.setTimeout(() => {
+        setStep("stable");
+        setPhase("manifesto");
+      }, T_STABLE),
+    );
+    const doneAt = T_STABLE + manifestoTypingDuration() + 800;
+    timers.push(
+      window.setTimeout(() => {
+        markIntroSeen();
         setPhase("done");
-        return;
-      }
-
-      if (mode === "ambient") {
-        // Visita posterior: campo en movimiento, texto completo, sin ceremonia.
-        setAnimate(false);
-        start = performance.now() - (INTRO_END + 3000);
-        setPhase("done");
-        raf = requestAnimationFrame(render);
-        return;
-      }
-
-      // Ceremonia completa (primera visita).
-      setAnimate(true);
-      setPhase("ceremony");
-      start = performance.now();
-      raf = requestAnimationFrame(render);
-      timers.push(
-        window.setTimeout(() => setPhase("manifesto"), MANIFESTO_START),
-      );
-      const done = MANIFESTO_START + manifestoTypingDuration() + 800;
-      timers.push(
-        window.setTimeout(() => {
-          markIntroSeen();
-          setPhase("done");
-        }, done),
-      );
-    };
-
-    loadImage("/brand/isomenu.svg")
-      .then((img) => {
-        isoImg = img;
-      })
-      .catch(() => {
-        isoImg = null;
-      })
-      .finally(begin);
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
-      timers.forEach((t) => clearTimeout(t));
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("pointermove", onPointer);
-    };
+      }, doneAt),
+    );
+    /* eslint-enable react-hooks/set-state-in-effect */
+    return () => timers.forEach((t) => clearTimeout(t));
   }, []);
 
+  const stable = step === "stable";
   const revealManifesto = phase === "manifesto" || phase === "done";
-  const foreground = animate && phase !== "done";
+  const trans = { duration: animate ? 0.7 : 0, ease: EASE };
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        aria-hidden
-        className={
-          foreground
-            ? "pointer-events-none fixed inset-0 z-40"
-            : "pointer-events-none fixed inset-0 -z-10"
-        }
-      />
-      <div className="relative z-50 px-6">
+    <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden">
+      {/* Negro absoluto de base (Ficha 00/01). */}
+      <div aria-hidden className="fixed inset-0 -z-10 bg-[#000]" />
+
+      {/* Esquinas de marca: logo (izq) e iso que rota (der). Aparecen al quedar
+          constituida la primera pantalla. */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-start justify-between p-6 transition-opacity duration-700 md:p-8"
+        style={{ opacity: stable ? 1 : 0 }}
+      >
+        <Link href="/" className="pointer-events-auto" aria-label="gular — inicio">
+          <SvgMark
+            src="/brand/gularlogo.svg"
+            style={{ height: "clamp(28px, 3vw, 40px)", width: `calc(clamp(28px, 3vw, 40px) * ${LOGO_RATIO})` }}
+          />
+        </Link>
+        <span
+          className="[perspective:600px]"
+          aria-label="gular"
+          style={{ height: "clamp(40px, 4.5vw, 60px)", width: `calc(clamp(40px, 4.5vw, 60px) * ${ISO_RATIO})` }}
+        >
+          <SvgMark
+            src="/brand/isomenu.svg"
+            className={animate ? "iso-spin" : undefined}
+            style={{ height: "100%", width: "100%" }}
+          />
+        </span>
+      </div>
+
+      {/* Escenario central de la intro (la "g" y los textos, nítidos). */}
+      <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {!stable && (step === "g1" || step === "g2") && (
+            <motion.div
+              key="g"
+              initial={{ opacity: 0, scale: animate ? 0.94 : 1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={trans}
+            >
+              <SvgMark
+                src="/brand/isomenu.svg"
+                style={{ height: "38vh", width: `calc(38vh * ${ISO_RATIO})` }}
+              />
+            </motion.div>
+          )}
+
+          {!stable && step === "frase" && (
+            <motion.p
+              key="frase"
+              initial={{ opacity: 0, y: animate ? 12 : 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: animate ? -12 : 0 }}
+              transition={trans}
+              className="text-center text-4xl text-text md:text-6xl"
+            >
+              No hay{" "}
+              <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: "italic" }}>
+                solución
+              </span>
+            </motion.p>
+          )}
+
+          {!stable && step === "singular" && (
+            <motion.p
+              key="singular"
+              initial={{ opacity: 0, y: animate ? 12 : 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: animate ? -12 : 0 }}
+              transition={trans}
+              className="text-center text-5xl font-semibold uppercase tracking-[0.08em] text-text md:text-8xl"
+            >
+              {introText.singular}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Manifiesto: se escribe al quedar constituida la pantalla. */}
+      <div
+        className="relative z-20 w-full px-6 transition-opacity duration-700"
+        style={{ opacity: stable ? 1 : 0 }}
+      >
         <Manifesto reveal={revealManifesto} animate={animate} />
       </div>
     </section>
