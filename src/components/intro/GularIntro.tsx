@@ -188,7 +188,7 @@ export function GularIntro() {
         {/* Isologo con la cola de abajo girando y la parte de arriba fija: dos
             máscaras superpuestas (a 0° se ve como la marca entera). */}
         <span
-          className="relative block [perspective:600px]"
+          className="relative block"
           aria-label="gular"
           style={{ height: "clamp(40px, 4.5vw, 60px)", width: `calc(clamp(40px, 4.5vw, 60px) * ${ISO_RATIO})` }}
         >
