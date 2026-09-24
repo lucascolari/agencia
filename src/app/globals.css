@@ -97,19 +97,19 @@ html[data-intro] [data-site-header] {
   display: none;
 }
 
-/* Iso del menú: rotación vertical continua sobre su eje Y (1 vuelta / 8 s,
-   lineal, sin rebote), como pide la Ficha 01. */
+/* Iso del menú: la cola de abajo gira en círculos (rotación 2D en el plano)
+   alrededor de su propio centro, 1 vuelta / 8 s, lineal y sin rebote. */
 @keyframes iso-spin {
   from {
-    transform: rotateY(0deg);
+    transform: rotate(0deg);
   }
   to {
-    transform: rotateY(360deg);
+    transform: rotate(360deg);
   }
 }
 .iso-spin {
   animation: iso-spin 8s linear infinite;
-  transform-style: preserve-3d;
+  transform-origin: 45% 76%;
 }
 
 @media (prefers-reduced-motion: reduce) {
