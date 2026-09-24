@@ -185,15 +185,21 @@ export function GularIntro() {
             style={{ height: "clamp(28px, 3vw, 40px)", width: `calc(clamp(28px, 3vw, 40px) * ${LOGO_RATIO})` }}
           />
         </Link>
+        {/* Isologo con la cola de abajo girando y la parte de arriba fija: dos
+            máscaras superpuestas (a 0° se ve como la marca entera). */}
         <span
-          className="[perspective:600px]"
+          className="relative block [perspective:600px]"
           aria-label="gular"
           style={{ height: "clamp(40px, 4.5vw, 60px)", width: `calc(clamp(40px, 4.5vw, 60px) * ${ISO_RATIO})` }}
         >
           <SvgMark
-            src="/brand/isomenu.svg"
+            src="/brand/isomenu-top.svg"
+            style={{ position: "absolute", inset: 0, height: "100%", width: "100%" }}
+          />
+          <SvgMark
+            src="/brand/isomenu-tail.svg"
             className={animate ? "iso-spin" : undefined}
-            style={{ height: "100%", width: "100%" }}
+            style={{ position: "absolute", inset: 0, height: "100%", width: "100%" }}
           />
         </span>
       </div>
