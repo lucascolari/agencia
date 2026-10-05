@@ -11,6 +11,8 @@ import {
   setIntroPhase,
   type IntroPhase,
 } from "@/lib/intro/introState";
+import { siteConfig } from "@/config/site";
+import { getUiStrings } from "@/lib/content/ui";
 import {
   introText,
   manifestoLocation,
@@ -88,7 +90,9 @@ export function GularIntro() {
   const [step, setStep] = useState<Step>("g1");
   const [animate, setAnimate] = useState(true);
   const [phase, setPhase] = useState<IntroPhase>("pending");
+  const [menuOpen, setMenuOpen] = useState(false);
   const decided = useRef(false);
+  const nav = getUiStrings(siteConfig.locale).nav;
   const sectionRef = useRef<HTMLElement>(null);
   const manifestoWrapRef = useRef<HTMLDivElement>(null);
   const disCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -133,6 +137,16 @@ export function GularIntro() {
       window.removeEventListener("keydown", onKey);
     };
   }, [animate, phase]);
+
+  // Cerrar el menú con Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   // Orquestación de la secuencia.
   useEffect(() => {
@@ -419,7 +433,9 @@ export function GularIntro() {
       {/* Esquinas de marca: logo (izq) e iso que rota (der). Aparecen al quedar
           constituida la primera pantalla. */}
       <div
-        className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-start justify-between p-6 transition-opacity duration-700 md:p-8"
+        className={`pointer-events-none fixed inset-x-0 top-0 flex items-start justify-between p-6 transition-opacity duration-700 md:p-8 ${
+          menuOpen ? "z-[var(--z-modal)]" : "z-40"
+        }`}
         style={{ opacity: stable ? 1 : 0 }}
       >
         <Link href="/" className="pointer-events-auto" aria-label="gular — inicio">
@@ -428,11 +444,14 @@ export function GularIntro() {
             style={{ height: "clamp(28px, 3vw, 40px)", width: `calc(clamp(28px, 3vw, 40px) * ${LOGO_RATIO})` }}
           />
         </Link>
-        {/* Isologo con la cola de abajo girando y la parte de arriba fija: dos
-            máscaras superpuestas (a 0° se ve como la marca entera). */}
-        <span
-          className="relative block [perspective:520px]"
-          aria-label="gular"
+        {/* Isologo = control de apertura del menú (Ficha 01). La cola de abajo
+            gira y la parte de arriba queda fija: dos máscaras superpuestas. */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={menuOpen}
+          className="pointer-events-auto relative block cursor-pointer p-0 [perspective:520px]"
           style={{ height: "clamp(40px, 4.5vw, 60px)", width: `calc(clamp(40px, 4.5vw, 60px) * ${ISO_RATIO})` }}
         >
           <SvgMark
@@ -444,8 +463,37 @@ export function GularIntro() {
             className={animate ? "iso-spin" : undefined}
             style={{ position: "absolute", inset: 0, height: "100%", width: "100%" }}
           />
-        </span>
+        </button>
       </div>
+
+      {/* Menú de navegación (lo abre el iso). Versión sobria provisional hasta la
+          ficha de menú del diseñador. */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-[var(--z-overlay)] flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm"
+          onClick={() => setMenuOpen(false)}
+        >
+          <nav
+            aria-label="Principal"
+            className="flex flex-col items-center gap-7"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="font-display text-4xl uppercase tracking-[0.12em] text-text transition-colors duration-300 hover:text-accent md:text-6xl"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <span className="pointer-events-none absolute bottom-10 text-label uppercase tracking-[0.24em] text-muted">
+            Esc para cerrar
+          </span>
+        </div>
+      )}
 
       {/* Escenario central de la intro (la "g" y los textos, nítidos). */}
       <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
