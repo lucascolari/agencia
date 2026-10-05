@@ -405,14 +405,15 @@ export function GularIntro() {
       ref={sectionRef}
       className="relative flex min-h-[100svh] items-center justify-center overflow-hidden"
     >
-      {/* Negro absoluto de base (Ficha 00/01). */}
-      <div aria-hidden className="fixed inset-0 -z-10 bg-[#000]" />
+      {/* Negro absoluto de base (Ficha 00/01). Absolute (no fixed): al soltarse
+          el pin se va con la primera pantalla y deja ver las secciones de abajo. */}
+      <div aria-hidden className="absolute inset-0 -z-10 bg-[#000]" />
 
       {/* Ficha 03 — partículas liberadas por el manifiesto al desintegrarse. */}
       <canvas
         ref={disCanvasRef}
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-30"
+        className="pointer-events-none absolute left-0 top-0 z-30"
       />
 
       {/* Esquinas de marca: logo (izq) e iso que rota (der). Aparecen al quedar
@@ -447,7 +448,7 @@ export function GularIntro() {
       </div>
 
       {/* Escenario central de la intro (la "g" y los textos, nítidos). */}
-      <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
+      <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
         <AnimatePresence mode="wait">
           {!stable && (step === "g1" || step === "g2") && (
             <motion.div
