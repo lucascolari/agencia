@@ -105,6 +105,7 @@ export function Manifesto({
       {/* Capa visual (decorativa para tecnologías asistivas). */}
       <p
         aria-hidden
+        data-mblock="loc"
         className="text-lg tracking-wide text-text md:text-xl"
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
       >
@@ -124,7 +125,7 @@ export function Manifesto({
         className="mt-10 space-y-6 text-balance font-body text-xl leading-relaxed text-text md:text-2xl"
       >
         {tl.body.map((block, bi) => (
-          <p key={`b-${bi}`}>
+          <p key={`b-${bi}`} data-mblock={`b${bi}`}>
             {block.chars.map((c, i) => (
               <CharSpan
                 key={`b-${bi}-${i}`}
