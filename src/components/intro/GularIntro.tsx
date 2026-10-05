@@ -55,6 +55,15 @@ const EASE = [0.83, 0, 0.17, 1] as const;
 const ISO_RATIO = 164 / 255; // ancho/alto del isologo
 const LOGO_RATIO = 286 / 137; // ancho/alto del logotipo
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 /** Silueta SVG nítida vía CSS mask (escalable, recoloreable, sin rasterizar). */
 function SvgMark({
   src,
@@ -96,6 +105,7 @@ export function GularIntro() {
   const sectionRef = useRef<HTMLElement>(null);
   const manifestoWrapRef = useRef<HTMLDivElement>(null);
   const disCanvasRef = useRef<HTMLCanvasElement>(null);
+  const ceremonyCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Refleja la fase en <html data-intro> (el header se oculta en la home).
   useEffect(() => {
@@ -191,6 +201,180 @@ export function GularIntro() {
     );
     /* eslint-enable react-hooks/set-state-in-effect */
     return () => timers.forEach((t) => clearTimeout(t));
+  }, []);
+
+  // Ficha 00/01 — ecos de materia en las transiciones de la intro: cuando una
+  // forma (la "g" o un texto) deja lugar a la siguiente, no se funde: se
+  // descompone en partículas que se dispersan (Capa 03 "ecos de movimiento").
+  // Capa de ecos sobre las formas nítidas. Placeholder con el isologo/fuente
+  // temporal hasta tener los COREC y la tipografía oficial.
+  useEffect(() => {
+    const canvas = ceremonyCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      introSeenThisSession()
+    ) {
+      return; // visitas posteriores / reduced-motion: sin ceremonia
+    }
+
+    const mobile =
+      window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
+    let cssW = window.innerWidth;
+    let cssH = window.innerHeight;
+    const rng = makeRng(5150);
+    const COUNT = mobile ? 900 : 1600;
+
+    const sizeCanvas = () => {
+      cssW = window.innerWidth;
+      cssH = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    type Pt2 = { x: number; y: number };
+    const sampleDraw = (
+      w: number,
+      h: number,
+      draw: (c: CanvasRenderingContext2D, w: number, h: number) => void,
+    ): Pt2[] => {
+      const off = document.createElement("canvas");
+      const sc = Math.min(window.devicePixelRatio || 1, 2);
+      off.width = Math.max(1, Math.ceil(w * sc));
+      off.height = Math.max(1, Math.ceil(h * sc));
+      const octx = off.getContext("2d");
+      if (!octx) return [];
+      octx.scale(sc, sc);
+      draw(octx, w, h);
+      const data = octx.getImageData(0, 0, off.width, off.height).data;
+      const lit: number[] = [];
+      const n = off.width * off.height;
+      for (let i = 0; i < n; i++) if (data[i * 4 + 3] > 100) lit.push(i);
+      const out: Pt2[] = [];
+      if (!lit.length) return out;
+      const cxp = cssW / 2;
+      const cyp = cssH / 2;
+      for (let i = 0; i < COUNT; i++) {
+        const idx = lit[(rng() * lit.length) | 0];
+        out.push({
+          x: cxp + ((idx % off.width) / sc - w / 2),
+          y: cyp + (((idx / off.width) | 0) / sc - h / 2),
+        });
+      }
+      return out;
+    };
+
+    let gPts: Pt2[] = [];
+    let t1Pts: Pt2[] = [];
+    let t2Pts: Pt2[] = [];
+
+    const textShape = (text: string, maxFont: number, weight: number) => {
+      const measure = document.createElement("canvas").getContext("2d");
+      if (!measure) return [];
+      let fontPx = Math.min(cssW * 0.09, maxFont);
+      const setF = () =>
+        (measure.font = `${weight} ${fontPx}px Archivo, system-ui, sans-serif`);
+      setF();
+      let m = measure.measureText(text);
+      const maxW = cssW * 0.84;
+      if (m.width > maxW) {
+        fontPx *= maxW / m.width;
+        setF();
+        m = measure.measureText(text);
+      }
+      const pad = fontPx * 0.4;
+      return sampleDraw(m.width + pad * 2, fontPx * 1.5, (c, w, h) => {
+        c.fillStyle = "#fff";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.font = `${weight} ${fontPx}px Archivo, system-ui, sans-serif`;
+        c.fillText(text, w / 2, h / 2);
+      });
+    };
+
+    const sampleAll = (img: HTMLImageElement | null) => {
+      const gh = Math.min(cssH * 0.38, 320);
+      if (img) {
+        const gw = gh * (img.width / img.height);
+        gPts = sampleDraw(gw, gh, (c, w, h) => c.drawImage(img, 0, 0, w, h));
+      } else {
+        gPts = textShape("g", 320, 600);
+      }
+      t1Pts = textShape(introText.frase, 88, 500);
+      t2Pts = textShape(introText.singular, 150, 700);
+    };
+
+    const WIN = 720;
+    const transitions: { t: number; getPts: () => Pt2[] }[] = [
+      { t: T_FRASE, getPts: () => gPts },
+      { t: T_SINGULAR, getPts: () => t1Pts },
+      { t: T_G2, getPts: () => t2Pts },
+      { t: T_STABLE, getPts: () => gPts },
+    ];
+
+    let start = 0;
+    let raf = 0;
+    let cancelled = false;
+
+    const render = (now: number) => {
+      ctx.clearRect(0, 0, cssW, cssH);
+      const e = now - start;
+      const cxp = cssW / 2;
+      const cyp = cssH / 2;
+      ctx.fillStyle = "#f2f0eb";
+      for (const tr of transitions) {
+        const local = (e - (tr.t - 60)) / (WIN + 60);
+        if (local <= 0 || local >= 1) continue;
+        const pts = tr.getPts();
+        for (let i = 0; i < pts.length; i++) {
+          const p = pts[i];
+          const ox = p.x - cxp;
+          const oy = p.y - cyp;
+          const dist = Math.hypot(ox, oy) || 1;
+          const jitter = ((i * 2654435761) % 1000) / 1000 - 0.5;
+          const spread = (90 + jitter * 120) * local;
+          const x = p.x + (ox / dist) * spread + jitter * 14;
+          const y = p.y + (oy / dist) * spread - local * 46;
+          ctx.globalAlpha = (1 - local) * 0.85;
+          ctx.beginPath();
+          ctx.arc(x, y, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (!cancelled && e < T_STABLE + WIN + 200) {
+        raf = requestAnimationFrame(render);
+      } else {
+        ctx.clearRect(0, 0, cssW, cssH);
+      }
+    };
+
+    const onResize = () => sizeCanvas();
+
+    const begin = (img: HTMLImageElement | null) => {
+      if (cancelled) return;
+      sizeCanvas();
+      sampleAll(img);
+      start = performance.now();
+      raf = requestAnimationFrame(render);
+      window.addEventListener("resize", onResize);
+    };
+
+    loadImage("/brand/isomenu.svg")
+      .then((img) => begin(img))
+      .catch(() => begin(null));
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
 
   // Ficha 03 — Desintegración del manifiesto con el primer scroll. Se arma solo
@@ -586,6 +770,13 @@ export function GularIntro() {
         ref={disCanvasRef}
         aria-hidden
         className="pointer-events-none absolute left-0 top-0 z-30"
+      />
+
+      {/* Ficha 00/01 — ecos de partículas en las transiciones de la intro. */}
+      <canvas
+        ref={ceremonyCanvasRef}
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 z-[31]"
       />
 
       {/* Esquinas de marca: logo (izq) e iso que rota (der). Aparecen al quedar
