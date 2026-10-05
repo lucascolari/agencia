@@ -236,9 +236,11 @@ export function GularIntro() {
     const F03_SPAN = mobile ? 0.9 : 1.0; // desintegración
     const F04_SPAN = mobile ? 0.35 : 0.45; // campo residual
     const F05_SPAN = mobile ? 0.68 : 0.9; // avance en profundidad + 3 flujos
-    const TOTAL_SPAN = F03_SPAN + F04_SPAN + F05_SPAN;
+    const F06_SPAN = mobile ? 0.52 : 0.7; // formación de los 3 núcleos
+    const TOTAL_SPAN = F03_SPAN + F04_SPAN + F05_SPAN + F06_SPAN;
     const FR03 = F03_SPAN / TOTAL_SPAN;
     const FR04 = (F03_SPAN + F04_SPAN) / TOTAL_SPAN;
+    const FR05 = (F03_SPAN + F04_SPAN + F05_SPAN) / TOTAL_SPAN;
     let parts: P[] = [];
     let blocks: HTMLElement[] = [];
     let blockWins: Array<[number, number]> = [];
@@ -372,15 +374,41 @@ export function GularIntro() {
       return t * t * (3 - 2 * t);
     };
 
-    const cx = () => cssW / 2;
-    const cy = () => cssH / 2;
+    // Posición de una partícula en la Ficha 05 (avance en profundidad + 3 flujos).
+    // Se reutiliza como punto de partida de la Ficha 06.
+    const f05pos = (p: P, p05val: number) => {
+      const cxv = cssW / 2;
+      const cyv = cssH / 2;
+      const adv = Math.min(p05val * p.speed, 1) * (1 - p.fdepth * 0.55);
+      const out = 1 + adv * (reduced ? 0.8 : 1.9);
+      let px = cxv + (p.fx - cxv) * out;
+      const py = cyv + (p.fy - cyv) * out;
+      const flowBlend = smooth(0.2, 0.95, p05val);
+      const colX = cxv + p.flow * cssW * 0.24;
+      const pull = p.flow === 0 ? 0.55 : 0.4;
+      const converge = smooth(0.82, 1, p05val);
+      const targetX = px + (colX - px) * (pull + converge * 0.25);
+      px += (targetX - px) * flowBlend;
+      return { px, py, adv };
+    };
+
+    // Centros de los 3 núcleos (Ficha 06). Asimétricos: distinta escala, altura y
+    // densidad. El central (Yuze) es más chico/cohesivo; los laterales más abiertos.
+    const nucleus = (flow: number) =>
+      flow === -1
+        ? { x: cssW * 0.27, y: cssH * 0.54, r: cssW * 0.1 }
+        : flow === 0
+          ? { x: cssW * 0.5, y: cssH * 0.46, r: cssW * 0.075 }
+          : { x: cssW * 0.73, y: cssH * 0.57, r: cssW * 0.105 };
 
     const render = (now: number) => {
       ctx.clearRect(0, 0, cssW, cssH);
-      // Progreso dividido: F03 desintegración, F04 campo residual, F05 profundidad.
+      // Progreso dividido por ficha (F03 desint. → F04 residual → F05 profundidad
+      // → F06 núcleos). Todo función del scroll ⇒ reversible.
       const p03 = FR03 > 0 ? Math.min(progress / FR03, 1) : 1;
       const p04 = Math.max(0, Math.min((progress - FR03) / (FR04 - FR03), 1));
-      const p05 = FR04 < 1 ? Math.max(0, (progress - FR04) / (1 - FR04)) : 0;
+      const p05 = Math.max(0, Math.min((progress - FR04) / (FR05 - FR04), 1));
+      const p06 = FR05 < 1 ? Math.max(0, (progress - FR05) / (1 - FR05)) : 0;
 
       // Disolución de cada glifo (DOM) según la erosión de su bloque.
       for (let b = 0; b < blocks.length; b++) {
@@ -391,7 +419,68 @@ export function GularIntro() {
 
       ctx.fillStyle = TEXT_COLOR;
 
-      if (p05 <= 0) {
+      if (p06 > 0) {
+        // Ficha 06 — formación de 3 núcleos granulares. La materia se concentra
+        // alrededor de 3 centros; el central (Yuze) gana presencia, foco y un matiz
+        // azul petróleo; los laterales (Jolly izq, NÓMADES der) más abiertos y
+        // desenfocados. Órbitas parciales e irregulares (sin rotación completa).
+        const form = smooth(0, 0.65, p06);
+        const central = smooth(0.5, 1, p06);
+        const osc = reduced ? 0.5 : 1;
+        for (const p of parts) {
+          const start = f05pos(p, 1);
+          const nc = nucleus(p.flow);
+          const isCenter = p.flow === 0;
+          const rr =
+            nc.r * (0.18 + p.fdepth * 0.95) * (isCenter ? 1 - central * 0.3 : 1);
+          const ang = p.ph;
+          const clusterX = nc.x + Math.cos(ang) * rr;
+          const clusterY = nc.y + Math.sin(ang) * rr * 1.12;
+          const px =
+            start.px +
+            (clusterX - start.px) * form +
+            Math.sin(now * 0.0005 + ang) * 2 * osc;
+          const py =
+            start.py +
+            (clusterY - start.py) * form +
+            Math.cos(now * 0.00055 + ang) * 2 * osc;
+          const focusedFrag = isCenter && p.fdepth > 0.55;
+          const size = focusedFrag ? 1 : isCenter ? 0.9 : 1.1 + p.fdepth * 0.5;
+          let alpha = isCenter ? 0.2 + p.fdepth * 0.25 : 0.12 + p.fdepth * 0.1;
+          if (focusedFrag) alpha = 0.45 + central * 0.1;
+          if (isCenter) {
+            const t = central * (0.3 + p.fdepth * 0.5);
+            const cr = Math.round(242 + (46 - 242) * t);
+            const cg = Math.round(240 + (86 - 240) * t);
+            const cb = Math.round(235 + (112 - 235) * t);
+            ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+          } else {
+            ctx.fillStyle = TEXT_COLOR;
+          }
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = TEXT_COLOR;
+      } else if (p05 > 0) {
+        // Ficha 05 — avance en profundidad (cámara fija) + separación en 3 flujos.
+        const driftAmp = reduced ? 1.5 : 3;
+        for (const p of parts) {
+          const base = f05pos(p, p05);
+          const px = base.px + Math.cos(now * 0.00045 + p.ph) * driftAmp;
+          const py = base.py + Math.sin(now * 0.0004 + p.ph) * driftAmp;
+          const size = (0.7 + p.fdepth * 0.5) * (1 + base.adv * 2.4);
+          let alpha: number;
+          if (base.adv > 0.72) alpha = 0.1;
+          else if (p.fdepth > 0.42 && p.fdepth < 0.6) alpha = 0.5;
+          else alpha = 0.16 + p.fdepth * 0.12;
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
         // Ficha 03 — partículas liberadas que ascienden y se integran al campo.
         for (const p of parts) {
           const e = erosion(p03, p.win, p.rand);
@@ -422,40 +511,6 @@ export function GularIntro() {
             ctx.arc(p.fx + dx + curve, p.fy + dy, focused ? 1.2 : 0.8, 0, Math.PI * 2);
             ctx.fill();
           }
-        }
-      } else {
-        // Ficha 05 — cambio de eje: la materia avanza en profundidad hacia el
-        // usuario (cámara fija) y se separa en tres flujos (izq/centro/der).
-        const flowBlend = smooth(0.2, 0.95, p05); // 0–20% rota el vector, luego separa
-        const converge = smooth(0.82, 1, p05); // centros de densidad al final
-        const cxv = cx();
-        const cyv = cy();
-        const driftAmp = reduced ? 1.5 : 3;
-        for (const p of parts) {
-          // Avance: las cercanas (fdepth bajo) se acercan más → crecen y salen.
-          const adv = Math.min(p05 * p.speed, 1) * (1 - p.fdepth * 0.55);
-          const out = 1 + adv * (reduced ? 0.8 : 1.9);
-          let px = cxv + (p.fx - cxv) * out;
-          let py = cyv + (p.fy - cyv) * out;
-          // Tres flujos: la x migra hacia su columna; el central se cohesiona más.
-          const colX = cxv + p.flow * cssW * 0.24;
-          const pull = p.flow === 0 ? 0.55 : 0.4;
-          const targetX = px + (colX - px) * (pull + converge * 0.25);
-          px += (targetX - px) * flowBlend;
-          py += Math.sin(now * 0.0004 + p.ph) * driftAmp;
-          px += Math.cos(now * 0.00045 + p.ph) * driftAmp;
-          // Tamaño y foco por profundidad/acercamiento.
-          const size = (0.7 + p.fdepth * 0.5) * (1 + adv * 2.4);
-          let alpha: number;
-          if (adv > 0.72)
-            alpha = 0.1; // muy cerca: grande y desenfocada
-          else if (p.fdepth > 0.42 && p.fdepth < 0.6)
-            alpha = 0.5; // pocas intermedias enfocadas
-          else alpha = 0.16 + p.fdepth * 0.12;
-          ctx.globalAlpha = alpha;
-          ctx.beginPath();
-          ctx.arc(px, py, size, 0, Math.PI * 2);
-          ctx.fill();
         }
       }
       ctx.globalAlpha = 1;
