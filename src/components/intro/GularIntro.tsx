@@ -224,7 +224,15 @@ export function GularIntro() {
       rand: number;
       ph: number;
       rise: number;
+      // Hogar en el campo residual (Ficha 04): adonde se integra la materia.
+      fx: number;
+      fy: number;
+      fdepth: number;
     };
+    // Fracción del recorrido pineado que ocupa la Ficha 03 (resto = Ficha 04).
+    const F03_SPAN = mobile ? 0.9 : 1.0;
+    const F04_SPAN = mobile ? 0.35 : 0.45;
+    const F03_FRAC = F03_SPAN / (F03_SPAN + F04_SPAN);
     let parts: P[] = [];
     let blocks: HTMLElement[] = [];
     let blockWins: Array<[number, number]> = [];
@@ -320,6 +328,15 @@ export function GularIntro() {
           const idx = info.lit[(rng() * info.lit.length) | 0];
           const px = (idx % info.ow) / info.sc;
           const py = ((idx / info.ow) | 0) / info.sc;
+          // Hogar en el campo residual, con el centro despejado (elipse).
+          let fnx = rng() - 0.5;
+          let fny = rng() - 0.5;
+          let guard = 0;
+          while (Math.hypot(fnx, fny * 1.6) < 0.17 && guard < 8) {
+            fnx = rng() - 0.5;
+            fny = rng() - 0.5;
+            guard++;
+          }
           parts.push({
             x: rect.left + px,
             y: rect.top + py,
@@ -327,6 +344,9 @@ export function GularIntro() {
             rand: rng(),
             ph: rng() * Math.PI * 2,
             rise: 60 + rng() * 160,
+            fx: cssW / 2 + fnx * cssW * 0.96,
+            fy: cssH / 2 + fny * cssH * 0.9,
+            fdepth: rng(),
           });
         }
       });
@@ -336,28 +356,57 @@ export function GularIntro() {
     let raf = 0;
     const riseScale = reduced ? 0.3 : 1;
     const lateralAmp = reduced ? 2 : 10;
+    const smooth = (a: number, b: number, x: number) => {
+      const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    };
 
     const render = (now: number) => {
       ctx.clearRect(0, 0, cssW, cssH);
+      // Progreso dividido: Ficha 03 (desintegración) y Ficha 04 (campo residual).
+      const p03 = F03_FRAC > 0 ? Math.min(progress / F03_FRAC, 1) : 1;
+      const p04 =
+        F03_FRAC < 1 ? Math.max(0, (progress - F03_FRAC) / (1 - F03_FRAC)) : 0;
+
       // Disolución de cada glifo (DOM) según la erosión de su bloque.
       for (let b = 0; b < blocks.length; b++) {
         const [a, z] = blockWins[b];
-        const be =
-          progress <= a ? 0 : progress >= z ? 1 : (progress - a) / (z - a);
+        const be = p03 <= a ? 0 : p03 >= z ? 1 : (p03 - a) / (z - a);
         blocks[b].style.opacity = String(1 - be);
       }
-      // Partículas liberadas que ascienden y se integran al campo.
+
       ctx.fillStyle = TEXT_COLOR;
+      // Ficha 03 — partículas liberadas que ascienden y se integran al campo.
       for (const p of parts) {
-        const e = erosion(progress, p.win, p.rand);
+        const e = erosion(p03, p.win, p.rand);
         if (e <= 0 || e >= 1) continue;
         const rise = e * p.rise * riseScale;
         const lateral = Math.sin(now * 0.0012 + p.ph) * e * lateralAmp;
-        const alpha = Math.min(e * 4, 1) * (1 - e);
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = Math.min(e * 4, 1) * (1 - e);
         ctx.beginPath();
         ctx.arc(p.x + lateral, p.y - rise, 0.9, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // Ficha 04 — campo residual: la materia absorbida deriva y pierde energía.
+      // El centro queda vacío; al final aparece una tensión previa (Ficha 05).
+      if (p04 > 0) {
+        const settle = smooth(0, 0.3, p04);
+        const energy = 1 - smooth(0.3, 0.85, p04);
+        const tension = smooth(0.85, 1, p04);
+        for (const p of parts) {
+          const amp =
+            (2 + p.fdepth * 6) * (0.35 + energy * 0.65) * (reduced ? 0.4 : 1);
+          const dx = Math.sin(now * 0.0004 + p.ph) * amp;
+          const dy = Math.cos(now * 0.00045 + p.ph * 1.3) * amp;
+          const curve = tension * Math.sin(p.ph * 3 + now * 0.0006) * 7;
+          const focused = p.fdepth > 0.82;
+          const baseA = focused ? 0.42 : 0.12 + p.fdepth * 0.08;
+          ctx.globalAlpha = baseA * settle;
+          ctx.beginPath();
+          ctx.arc(p.fx + dx + curve, p.fy + dy, focused ? 1.2 : 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 1;
       raf = requestAnimationFrame(render);
@@ -376,7 +425,7 @@ export function GularIntro() {
           trigger: section,
           start: "top top",
           end: () =>
-            `+=${Math.round(window.innerHeight * (mobile ? 0.9 : 1.0))}`,
+            `+=${Math.round(window.innerHeight * (F03_SPAN + F04_SPAN))}`,
           pin: true,
           anticipatePin: 1,
           scrub: reduced ? true : 0.4,
