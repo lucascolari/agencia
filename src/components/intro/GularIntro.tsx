@@ -363,23 +363,28 @@ export function GularIntro() {
       raf = requestAnimationFrame(render);
     };
 
-    let st: ScrollTrigger | null = null;
+    // El ScrollTrigger (con pin) se crea dentro de un gsap.context para que el
+    // pin-spacer que inserta en el DOM se revierta al desmontar; si no, React
+    // falla al navegar fuera de la home ("This page couldn't load").
+    let ctxGsap: ReturnType<typeof gsap.context> | null = null;
     const setup = () => {
       sizeCanvas();
       build();
-      st?.kill();
-      st = ScrollTrigger.create({
-        trigger: section,
-        start: "top top",
-        end: () =>
-          `+=${Math.round(window.innerHeight * (mobile ? 0.9 : 1.0))}`,
-        pin: true,
-        anticipatePin: 1,
-        scrub: reduced ? true : 0.4,
-        onUpdate: (self) => {
-          progress = self.progress;
-        },
-      });
+      ctxGsap?.revert();
+      ctxGsap = gsap.context(() => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top top",
+          end: () =>
+            `+=${Math.round(window.innerHeight * (mobile ? 0.9 : 1.0))}`,
+          pin: true,
+          anticipatePin: 1,
+          scrub: reduced ? true : 0.4,
+          onUpdate: (self) => {
+            progress = self.progress;
+          },
+        });
+      }, section);
     };
 
     let resizeTimer = 0;
@@ -405,7 +410,7 @@ export function GularIntro() {
       cancelAnimationFrame(raf);
       window.clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
-      st?.kill();
+      ctxGsap?.revert();
       blocks.forEach((el) => (el.style.opacity = ""));
     };
   }, [phase]);
