@@ -79,8 +79,10 @@ function CharSpan({
         whiteSpace: "pre",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(1px)",
-        transition: animate ? "opacity 80ms linear, transform 80ms linear" : "none",
-        transitionDelay: animate ? `${delay}ms` : "0ms",
+        // Delay dentro del shorthand (no mezclar shorthand + longhand: React avisa).
+        transition: animate
+          ? `opacity 80ms linear ${delay}ms, transform 80ms linear ${delay}ms`
+          : "none",
       }}
     >
       {ch}
