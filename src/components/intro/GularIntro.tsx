@@ -760,27 +760,25 @@ export function GularIntro() {
       raf = requestAnimationFrame(render);
     };
 
-    // El ScrollTrigger (con pin) se crea dentro de un gsap.context para que el
-    // pin-spacer que inserta en el DOM se revierta al desmontar; si no, React
-    // falla al navegar fuera de la home ("This page couldn't load").
-    let ctxGsap: ReturnType<typeof gsap.context> | null = null;
+    // La escena se mantiene en pantalla con CSS `position: sticky` (ver JSX), NO
+    // con el `pin` de ScrollTrigger. El pin inserta un pin-spacer en el DOM que
+    // React desconoce y rompe al navegar ("This page couldn't load"); sticky no
+    // toca el DOM. La sección se hace alta y ScrollTrigger solo lee el progreso.
+    let st: ScrollTrigger | null = null;
     const setup = () => {
       sizeCanvas();
       build();
-      ctxGsap?.revert();
-      ctxGsap = gsap.context(() => {
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top top",
-          end: () => `+=${Math.round(window.innerHeight * TOTAL_SPAN)}`,
-          pin: true,
-          anticipatePin: 1,
-          scrub: reduced ? true : 0.4,
-          onUpdate: (self) => {
-            progress = self.progress;
-          },
-        });
-      }, section);
+      section.style.height = `${Math.round((TOTAL_SPAN + 1) * 100)}svh`;
+      st?.kill();
+      st = ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: reduced ? true : 0.4,
+        onUpdate: (self) => {
+          progress = self.progress;
+        },
+      });
     };
 
     let resizeTimer = 0;
@@ -806,7 +804,8 @@ export function GularIntro() {
       cancelAnimationFrame(raf);
       window.clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
-      ctxGsap?.revert();
+      st?.kill();
+      section.style.height = "";
       blocks.forEach((el) => (el.style.opacity = ""));
     };
   }, [phase]);
@@ -816,13 +815,13 @@ export function GularIntro() {
   const trans = { duration: animate ? 0.7 : 0, ease: EASE };
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative flex min-h-[100svh] items-center justify-center overflow-hidden"
-    >
-      {/* Negro absoluto de base (Ficha 00/01). Absolute (no fixed): al soltarse
-          el pin se va con la primera pantalla y deja ver las secciones de abajo. */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[#000]" />
+    <section ref={sectionRef} className="relative">
+      {/* Escena fija con CSS `sticky` (NO con el pin de ScrollTrigger, que
+          insertaba un pin-spacer y rompía la navegación con React). Toda la
+          experiencia 00–07 vive acá adentro; la sección se hace alta por JS. */}
+      <div className="sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden">
+        {/* Negro absoluto de base (Ficha 00/01). */}
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[#000]" />
 
       {/* Ficha 03 — partículas liberadas por el manifiesto al desintegrarse. */}
       <canvas
@@ -1012,6 +1011,7 @@ export function GularIntro() {
         style={{ opacity: stable ? 1 : 0 }}
       >
         <Manifesto reveal={revealManifesto} animate={animate} />
+      </div>
       </div>
     </section>
   );
