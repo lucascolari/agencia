@@ -88,6 +88,56 @@ function CharSpan({
   );
 }
 
+/**
+ * Renderiza los caracteres agrupados en palabras. Cada palabra es un
+ * inline-block con `white-space: nowrap`, de modo que solo se puede cortar
+ * renglón ENTRE palabras y nunca en medio de una (bug en móvil). Los espacios
+ * son el único punto de corte y no se animan (son invisibles).
+ */
+function renderChars(
+  chars: Char[],
+  keyPrefix: string,
+  reveal: boolean,
+  animate: boolean,
+) {
+  const nodes: React.ReactNode[] = [];
+  let word: Char[] = [];
+  let wordStart = 0;
+  const flush = () => {
+    if (word.length === 0) return;
+    const w = word;
+    nodes.push(
+      <span
+        key={`${keyPrefix}-w${wordStart}`}
+        style={{ display: "inline-block", whiteSpace: "nowrap" }}
+      >
+        {w.map((c, i) => (
+          <CharSpan
+            key={`${keyPrefix}-${wordStart + i}`}
+            ch={c.ch}
+            delay={c.delay}
+            reveal={reveal}
+            animate={animate}
+          />
+        ))}
+      </span>,
+    );
+    word = [];
+  };
+  chars.forEach((c, i) => {
+    if (c.ch === " ") {
+      flush();
+      // Espacio = oportunidad de corte de renglón (texto normal, no inline-block).
+      nodes.push(<span key={`${keyPrefix}-s${i}`}> </span>);
+    } else {
+      if (word.length === 0) wordStart = i;
+      word.push(c);
+    }
+  });
+  flush();
+  return nodes;
+}
+
 export function Manifesto({
   reveal,
   animate,
@@ -109,15 +159,7 @@ export function Manifesto({
         className="text-lg tracking-wide text-text md:text-xl"
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
       >
-        {tl.location.chars.map((c, i) => (
-          <CharSpan
-            key={`loc-${i}`}
-            ch={c.ch}
-            delay={c.delay}
-            reveal={reveal}
-            animate={animate}
-          />
-        ))}
+        {renderChars(tl.location.chars, "loc", reveal, animate)}
       </p>
 
       <div
@@ -126,15 +168,7 @@ export function Manifesto({
       >
         {tl.body.map((block, bi) => (
           <p key={`b-${bi}`} data-mblock={`b${bi}`}>
-            {block.chars.map((c, i) => (
-              <CharSpan
-                key={`b-${bi}-${i}`}
-                ch={c.ch}
-                delay={c.delay}
-                reveal={reveal}
-                animate={animate}
-              />
-            ))}
+            {renderChars(block.chars, `b-${bi}`, reveal, animate)}
           </p>
         ))}
       </div>

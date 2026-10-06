@@ -19,6 +19,7 @@ import {
   manifestoParagraphs,
 } from "@/lib/content/manifesto";
 import { makeRng } from "@/lib/intro/particles";
+import { getLenis } from "@/lib/scroll/lenisStore";
 import {
   DISINTEGRATION_WINDOWS,
   erosion,
@@ -123,6 +124,10 @@ export function GularIntro() {
     const html = document.documentElement;
     const prev = html.style.overflow;
     html.style.overflow = "hidden";
+    // Lenis (smooth scroll) ignora overflow:hidden y los preventDefault, así que
+    // en desktop hay que frenarlo explícitamente o el scroll sigue activo.
+    const lenis = getLenis();
+    lenis?.stop();
     const blockKeys = new Set([
       " ",
       "Spacebar",
@@ -142,6 +147,7 @@ export function GularIntro() {
     window.addEventListener("keydown", onKey);
     return () => {
       html.style.overflow = prev;
+      lenis?.start();
       window.removeEventListener("wheel", prevent);
       window.removeEventListener("touchmove", prevent);
       window.removeEventListener("keydown", onKey);

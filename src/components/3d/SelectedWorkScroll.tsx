@@ -41,9 +41,13 @@ export function SelectedWorkScroll({
       const st = ScrollTrigger.create({
         trigger: container.current,
         start: "top top",
-        end: "+=520%",
+        // Largo de recorrido explícito en píxeles (3 pantallas). El valor
+        // relativo "%" se calculaba enorme con la página tan alta y dejaba un
+        // vacío de scroll gigante antes de la sección siguiente.
+        end: () => "+=" + window.innerHeight * 3,
         pin: true,
         scrub: 1,
+        invalidateOnRefresh: true,
         onUpdate: (self) => {
           progress.current = self.progress;
         },
