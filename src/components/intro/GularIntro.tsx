@@ -421,13 +421,18 @@ export function GularIntro() {
     const F04_SPAN = mobile ? 0.35 : 0.45; // campo residual
     const F05_SPAN = mobile ? 0.68 : 0.9; // avance en profundidad + 3 flujos
     const F06_SPAN = mobile ? 0.52 : 0.7; // formación de los 3 núcleos
-    const TOTAL_SPAN = F03_SPAN + F04_SPAN + F05_SPAN + F06_SPAN;
+    const F07_SPAN = mobile ? 1.8 : 2.5; // carrusel "Universos Construidos"
+    const TOTAL_SPAN =
+      F03_SPAN + F04_SPAN + F05_SPAN + F06_SPAN + F07_SPAN;
     const FR03 = F03_SPAN / TOTAL_SPAN;
     const FR04 = (F03_SPAN + F04_SPAN) / TOTAL_SPAN;
     const FR05 = (F03_SPAN + F04_SPAN + F05_SPAN) / TOTAL_SPAN;
+    const FR06 = (F03_SPAN + F04_SPAN + F05_SPAN + F06_SPAN) / TOTAL_SPAN;
     let parts: P[] = [];
     let blocks: HTMLElement[] = [];
     let blockWins: Array<[number, number]> = [];
+    let coverEls: (HTMLElement | null)[] = [];
+    let titleEl: HTMLElement | null = null;
     let cssW = 0;
     let cssH = 0;
     const rng = makeRng(90321);
@@ -506,6 +511,10 @@ export function GularIntro() {
       blockWins = blocks.map(
         (el) => DISINTEGRATION_WINDOWS[el.dataset.mblock as BlockKey],
       );
+      coverEls = [0, 1, 2].map((i) =>
+        section.querySelector<HTMLElement>(`[data-cover="${i}"]`),
+      );
+      titleEl = section.querySelector<HTMLElement>("[data-f07-title]");
       parts = [];
       blocks.forEach((el, bi) => {
         const rect = rects[bi];
@@ -592,7 +601,8 @@ export function GularIntro() {
       const p03 = FR03 > 0 ? Math.min(progress / FR03, 1) : 1;
       const p04 = Math.max(0, Math.min((progress - FR03) / (FR04 - FR03), 1));
       const p05 = Math.max(0, Math.min((progress - FR04) / (FR05 - FR04), 1));
-      const p06 = FR05 < 1 ? Math.max(0, (progress - FR05) / (1 - FR05)) : 0;
+      const p06 = Math.max(0, Math.min((progress - FR05) / (FR06 - FR05), 1));
+      const p07 = FR06 < 1 ? Math.max(0, (progress - FR06) / (1 - FR06)) : 0;
 
       // Disolución de cada glifo (DOM) según la erosión de su bloque.
       for (let b = 0; b < blocks.length; b++) {
@@ -601,9 +611,58 @@ export function GularIntro() {
         blocks[b].style.opacity = String(1 - be);
       }
 
+      // Fuera de la Ficha 07, las portadas y el título del carrusel se ocultan.
+      if (p07 <= 0) {
+        for (const el of coverEls) if (el) el.style.opacity = "0";
+        if (titleEl) titleEl.style.opacity = "0";
+      }
+
       ctx.fillStyle = TEXT_COLOR;
 
-      if (p06 > 0) {
+      if (p07 > 0) {
+        // Ficha 07 — "Universos Construidos": los 3 núcleos se vuelven portadas
+        // navegables en un carrusel circular (Yuze → NÓMADES → Jolly). Las
+        // partículas quedan como borde granular tenue; las portadas (DOM) mandan.
+        const fade = 1 - smooth(0.05, 0.5, p07) * 0.82;
+        for (const p of parts) {
+          const nc = nucleus(p.flow);
+          const isCenter = p.flow === 0;
+          const rr = nc.r * (0.18 + p.fdepth * 0.95) * (isCenter ? 0.7 : 1);
+          const ang = p.ph;
+          const px = nc.x + Math.cos(ang) * rr + Math.sin(now * 0.0005 + ang) * 2;
+          const py =
+            nc.y + Math.sin(ang) * rr * 1.12 + Math.cos(now * 0.00055 + ang) * 2;
+          ctx.globalAlpha = (isCenter ? 0.16 : 0.1) * fade;
+          ctx.beginPath();
+          ctx.arc(px, py, isCenter ? 0.8 : 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        // Carrusel: posición continua (0 = Yuze centro, 1 = NÓMADES, 2 = Jolly).
+        let carPos: number;
+        if (p07 < 0.32) carPos = 0;
+        else if (p07 < 0.54) carPos = smooth(0.32, 0.54, p07);
+        else if (p07 < 0.66) carPos = 1;
+        else if (p07 < 0.88) carPos = 1 + smooth(0.66, 0.88, p07);
+        else carPos = 2;
+        if (titleEl) titleEl.style.opacity = String(smooth(0.04, 0.2, p07));
+        for (let i = 0; i < 3; i++) {
+          const el = coverEls[i];
+          if (!el) continue;
+          let o = i - carPos;
+          while (o > 1.5) o -= 3;
+          while (o < -1.5) o += 3;
+          const ao = Math.abs(o);
+          const x = o * cssW * 0.3;
+          const scale = 1 - Math.min(ao, 1) * 0.42;
+          const blur = Math.min(ao, 1) * 6;
+          const opacity = (1 - smooth(1.15, 1.5, ao)) * smooth(0, 0.08, p07);
+          el.style.transform = `translate(-50%, -50%) translateX(${x.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+          el.style.filter = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : "none";
+          el.style.opacity = opacity.toFixed(3);
+          el.style.zIndex = String(Math.round(20 - ao * 6));
+        }
+      } else if (p06 > 0) {
         // Ficha 06 — formación de 3 núcleos granulares. La materia se concentra
         // alrededor de 3 centros; el central (Yuze) gana presencia, foco y un matiz
         // azul petróleo; los laterales (Jolly izq, NÓMADES der) más abiertos y
@@ -778,6 +837,59 @@ export function GularIntro() {
         aria-hidden
         className="pointer-events-none absolute left-0 top-0 z-[31]"
       />
+
+      {/* Ficha 07 — "Universos Construidos": carrusel de portadas (Yuze → NÓMADES
+          → Jolly). Portadas placeholder con medios actuales hasta que lleguen las
+          reales. El clic/apertura de proyecto está marcado como pendiente en el
+          propio documento. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[32] overflow-hidden"
+      >
+        {[
+          {
+            src: "https://image.mux.com/H8ob3JuHyeu301QekfX014XIWrdmHBQDZKhul6Mi9FfcQ/thumbnail.jpg?width=900",
+            label: "Yuze",
+          },
+          {
+            src: "https://image.mux.com/T3U83BLLLA55g3UdEv5yRHWSrwGJ6x8boWmJpcOJDPY/thumbnail.jpg?width=900",
+            label: "NÓMADES",
+          },
+          { src: "/media/proyectos/jolly/jolly-01.webp", label: "Jolly Hygge" },
+        ].map((c, i) => (
+          <div
+            key={c.label}
+            data-cover={i}
+            className="absolute left-1/2 top-1/2 overflow-hidden bg-[#0a0a0a]"
+            style={{
+              width: "clamp(240px, 32vw, 500px)",
+              aspectRatio: "4 / 5",
+              opacity: 0,
+              transform: "translate(-50%, -50%)",
+              borderRadius: "44% 56% 52% 48% / 54% 46% 54% 46%",
+              willChange: "transform, opacity, filter",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={c.src} alt="" className="h-full w-full object-cover" />
+          </div>
+        ))}
+        <div
+          data-f07-title
+          className="absolute left-1/2 top-[13%] -translate-x-1/2 whitespace-nowrap text-center"
+          style={{ opacity: 0 }}
+        >
+          <span className="font-body text-3xl uppercase tracking-[0.1em] text-text md:text-5xl">
+            Universos{" "}
+          </span>
+          <span
+            className="text-3xl italic text-text md:text-5xl"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            Construidos
+          </span>
+        </div>
+      </div>
 
       {/* Esquinas de marca: logo (izq) e iso que rota (der). Aparecen al quedar
           constituida la primera pantalla. */}
